@@ -14,10 +14,11 @@ def mk_barchart(title, xticks, legend, data, data_err=None, ylim=None):
     ind = np.arange(len(xticks))    # the x locations for the groups
     barwidth = 1.0/(len(legend)+1)  # the width of the bars
 
-    fig = plt.figure(figsize=figure_size)
+    # create a new figure and axes instance
+    fig = plt.figure(figsize=figure_size) # figure size specified in config
     ax = fig.add_subplot(111)
 
-    # Set y axis limit
+    # Set ylim and xlim
     if ylim:
         ax.set_ylim(*ylim)
     ax.set_xlim(right=len(ind))
@@ -32,6 +33,16 @@ def mk_barchart(title, xticks, legend, data, data_err=None, ylim=None):
             errd = None
         rects.append(ax.bar(left=left_empty+ind+i*barwidth, height=d, width=barwidth, alpha=1,
                             color=colors[i], ecolor='black', edgecolor='black', hatch=hatch_patterns[i]))
+
+    # put labels for data bars that overflow ylim
+    if ylim and label_enable:
+        for i,d in enumerate(data):
+            for ii,bar in enumerate(d):
+                if bar > ylim[1]:
+                    ax.text(x=left_empty+ind[ii]+(i*barwidth)+barwidth/2.,
+                            y=ylim[1]+label_y_space, s='%s'%round(bar,2),
+                            ha='center', va='bottom',
+                            rotation=label_angle_rotation, fontsize=numbers_fontsize)
 
     # general formating
     common.set_titles(ax, title, xtitle, ytitle, title_fontsize,

@@ -50,14 +50,14 @@ column_ids_err = [] # not implemented
 title = "from-filename"
 xtitle='X-Axis Title'
 ytitle='Y-Axis Title'
-title_fontsize=20
-xtitle_fontsize=16
-ytitle_fontsize=17
-xlabel_fontsize=15.5
-ylabel_fontsize=16
-legend_fontsize=20
-text_fontsize=14.5
-numbers_fontsize=16
+title_fontsize=20       # figure title
+xtitle_fontsize=16      # x axis title
+ytitle_fontsize=17      # y axis title
+xlabel_fontsize=15.5    # x axis labels
+ylabel_fontsize=16      # y axis labels
+legend_fontsize=20      # legend
+text_fontsize=14.5      # x axis cluster labels
+numbers_fontsize=16     # for numbers above ylim
 
 # y axes limit
 my_ylim = {}
@@ -109,13 +109,17 @@ palette_forever_lost = "#5D4157 #838689 #A8CABA #CAD7B2 #EBE3AA"
 ### http://www.colourlovers.com/palette/1542449/fighting_the_9-5.?widths=0
 palette_fighting = "#262626 #475959 #689493 #9DC4C4 #EBDDC7"
 ### http://www.colorcombos.com/color-schemes/2/ColorCombo2.html etc
-#palette_blue2 = "#097054 #FFDE00 #6599FF #FF9900 "
+palette_blue2 = "#097054 #FFDE00 #6599FF #FF9900 "
 #palette_blue25 = "#0000FF #FF0000 #FFFFFF #333333 "
-#palette_blue15 = "#CC0000 #99FF00 #FFCC00 #3333FF "
-palette_1 = "#777777 #FFFFFF #CCCCCC #FFFFFF "
-palette_2 = "#DDDDDD #FFFFFF #FFFFFF #DDDDDD "
+palette_blue15 = "#CC0000 #99FF00 #FFCC00 #3333FF "
+palette_1 = "#FFFFFF #DDDDDD #BBBBBB #999999 "
+palette_2 = "#777777 #555555 #333333 #111111 "
 
-colors = [colorConverter.to_rgb(a) for a in (palette_1 + palette_2).split()] # use palette_blue2+palette_blue15 for colored
+# default is black and white
+colors = [colorConverter.to_rgb(a) for a in (palette_1 + palette_2).split()]
+
+# use palette_blue2+palette_blue15 for colored
+#colors = [colorConverter.to_rgb(a) for a in (palette_blue2 + palette_blue15).split()]
 
 # extensions allows for raw data files
 EXTENSIONS=['.csv']

@@ -19,3 +19,4 @@ palette_1 = "#FFFFFF #FFFFFF #FFFFFF #DDDDDD "
 palette_2 = "#999999 #444444 #FFFFFF #DDDDDD "
 
 colors = [colorConverter.to_rgb(a) for a in (palette_1 + palette_2).split()]
+
