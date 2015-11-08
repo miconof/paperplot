@@ -67,6 +67,10 @@ def mk_barchart(title, xticks, legend, data, data_err=None, ylim=None):
     for t in leg.get_texts():
         t.set_fontsize(legend_fontsize)    # the legend text fontsize
 
+    # Graph shrinking if desired, no shrinking by default
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * shrink_width_factor, box.height * shrink_height_factor])
+
     ax.set_axisbelow(True)
     plt.gca().yaxis.grid(color='gray', linestyle='-', linewidth=0.5)
     plt.tight_layout()
