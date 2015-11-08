@@ -82,15 +82,25 @@ def mk_barcharts_recursively(basedir):
                 continue
 
             # Read csv file, returns a list
-            d = common.read_csv_file(root, fname, fext)
+            data, header = common.read_csv_file(root, fname, fext)
+
+            # column names
+            if auto_column_names:
+                column_names = header[1:]
 
             # labels, use benchmark names
-            xtick_labels = [a[xticks_id] for a in d]
+            xtick_labels = [a[xticks_id] for a in data]
 
             # get data from specified columns
-            columns_data, columns_errdata = common.get_data(d,
-                                                                    column_ids_data,
-                                                                    column_ids_err)
+            columns_data, columns_errdata = common.get_data(data,
+                                                        column_ids_data,
+                                                        column_ids_err)
+
+            # Add arithmetic and/or geometric means
+            if do_add_average:
+                columns_data, columns_errdata, xtick_labels = common.add_average(columns_data, columns_errdata, xtick_labels)
+            if do_add_geomean:
+                columns_data, columns_errdata, xtick_labels = common.add_geomean(columns_data, columns_errdata, xtick_labels)
 
             # set specific ylim for the chart, defined in the config file
             ylim = None

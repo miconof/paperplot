@@ -24,11 +24,16 @@ def row_data_process(r):
 def read_csv_file(root, fname, fext):
     # read csv file and return list
     print "Updating the figure %s/%s.pdf" % (root, fname)
-    d = mp.mlab.csv2rec('%s/%s%s' % (root, fname, fext))
+    data = mp.mlab.csv2rec('%s/%s%s' % (root, fname, fext))
+
     d2 = []
-    for i in d:
-        d2.append(row_data_process(i))
-    return d2
+    header = []
+    for d in data:
+        d2.append(row_data_process(d))
+    for n in data.dtype.names:
+        header.append(row_data_process(n))
+
+    return d2, header
 
 
 def get_data(data, column_ids_data, column_ids_err):
@@ -53,3 +58,24 @@ def set_titles(ax, title, xtitle, ytitle, title_fontsize,
     ax.set_ylabel(ytitle, fontsize=ytitle_fontsize)
     for item in ax.get_yticklabels():
         item.set_fontsize(ylabel_fontsize)
+
+
+def add_average(data, errdata, names):
+    for col in data:
+        col.append(sum(col)/float(len(col)))
+
+    for col in errdata:
+        col.append(sum(col)/float(len(col)))
+
+    names.append('Average')
+    return data, errdata, names
+
+def add_geomean(data, errdata, names):
+    for col in data:
+        col.append(reduce(lambda x, y: x*y, col)**(1.0/len(col)))
+
+    for col in errdata:
+        col.append(reduce(lambda x, y: x*y, col)**(1.0/len(col)))
+
+    names.append('Geomean')
+    return data, errdata, names

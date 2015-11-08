@@ -39,9 +39,10 @@ figure_size = (5,4)
 xticks_id = 0
 
 # Column names
-column_names = ["First", "Second", "Third"]
+auto_column_names = True                        # use column names from header row of CSV file
+column_names = ["First", "Second", "Third"]     # if auto_column_names is False specify column names here
 
-# ID of columns holding data and error data
+# ID of columns holding data and error data (for error bars)
 column_ids_data = [1, 2, 3]
 column_ids_err = [] # not implemented
 
@@ -76,6 +77,11 @@ legend_loc = 'best'
 # 'lower center' : 8,
 # 'upper center' : 9,
 # 'center'       : 10,
+
+# add arithmetic and geometric means
+# beaware turning both on won't work as expected
+do_add_average = False
+do_add_geomean = False
 
 # labels for bars that overflow ylim
 label_enable=1                  # enable labels
