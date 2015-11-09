@@ -10,4 +10,5 @@ By default local configuration files should be called `local.config.py`.
 To execute and generate the plots for the provided examples you may run:
 
 `python barchart.py examples/barchart`
+
 `python clusterstacked.py examples/clusterstacked`
