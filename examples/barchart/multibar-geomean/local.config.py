@@ -12,7 +12,9 @@ bbox=(0.305,0.)
 legend_ncol=1
 legend_loc=3
 
-my_ylim['multibar'] = (0, 8.0)
+my_ylim['multibar-geomean'] = (0, 8.0)
+
+do_add_geomean = True
 
 hatch_patterns = (' ','\\\\','//',' ',' ', ' ')
 palette_1 = "#FFFFFF #FFFFFF #FFFFFF #DDDDDD "
