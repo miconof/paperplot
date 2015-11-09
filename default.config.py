@@ -8,7 +8,7 @@
 ### clusterstacked ###
 ######################
 
-# ID of the column that holds xtick labels for the cluster
+# ID of the column that holds xtick labels for each element of the cluster
 xticks_per_bar_id = 1
 
 # number of clustered bars for clusterstacked charts
