@@ -1,33 +1,7 @@
-################
-### barchart ###
-################
-
-
-
-######################
-### clusterstacked ###
-######################
-
-# ID of the column that holds xtick labels for each element of the cluster
-xticks_per_bar_id = 1
-
-# number of clustered bars for clusterstacked charts
-num_clustered = 4
-
-# xtick labels for each element of the cluster
-labels_rotation='horizontal'    # rotation
-labels_y=-0.08                  # placement w.r.t y=0
-
-
-###############
-### stacked ###
-###############
-
-
-
 ##################
 ### ALL charts ###
 ##################
+chart_type = "barchart"
 
 # name of the local configuration files
 config_fname = "local.config.py"
@@ -60,7 +34,7 @@ text_fontsize=14.5      # x axis cluster labels
 numbers_fontsize=16     # for numbers above ylim
 
 # y axes limit
-my_ylim = {}
+ylim = None
 
 # legend
 bbox=(0, 0, 1, 1)       # legend located at the figure corner
@@ -128,3 +102,40 @@ EXTENSIONS=['.csv']
 mp.rcParams['ps.useafm'] = True
 mp.rcParams['pdf.use14corefonts'] = True
 #mp.rcParams['text.usetex'] = True
+
+
+################
+### barchart ###
+################
+
+
+
+######################
+### clusterstacked ###
+######################
+
+# ID of the column that holds xtick labels for each element of the cluster
+xticks_per_bar_id = 1
+
+# number of clustered bars for clusterstacked charts
+num_clustered = 4
+
+# xtick labels for each element of the cluster
+labels_rotation='horizontal'    # rotation
+labels_y=-0.08                  # placement w.r.t y=0
+
+
+###############
+### stacked ###
+###############
+
+
+
+
+#################
+### linechart ###
+#################
+
+
+
+

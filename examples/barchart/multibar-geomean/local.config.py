@@ -1,3 +1,5 @@
+chart_type = "barchart"
+
 figure_size = (20,6.5)
 
 title=''
@@ -12,7 +14,7 @@ bbox=(0.305,0.)
 legend_ncol=1
 legend_loc=3
 
-my_ylim['multibar-geomean'] = (0, 8.0)
+ylim = (0, 8.0)
 
 do_add_geomean = True
 
