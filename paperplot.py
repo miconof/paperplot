@@ -104,6 +104,10 @@ def mk_clusterstacked(title, xticks, legend, data, data_err=None, ylim=None, xti
         ax.set_ylim(*ylim)
     ax.set_xlim(right=len(ind))
 
+    # Set axis scales
+    ax.set_yscale(yscale)
+    ax.set_xscale(xscale)
+
     # calculate bottoms for stacking
     y = np.row_stack(data)
     # this call to 'cumsum' (cumulative sum), passing in your y data,
@@ -191,6 +195,10 @@ def mk_barchart(title, xticks, legend, data, data_err=None, ylim=None):
         ax.set_ylim(*ylim)
     ax.set_xlim(right=len(ind))
 
+    # Set axis scales
+    ax.set_yscale(yscale)
+    ax.set_xscale(xscale)
+
     # Generate all bars
     rects = []
     left_empty = barwidth/2.0
@@ -249,7 +257,8 @@ def mk_charts(basedir):
     for root, dirs, files in os.walk(basedir):
 
         # Reset default config and load local config if any
-        execfile('default.config.py', globals(), globals())
+        default_config_path = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), 'default.config.py')
+        execfile(default_config_path, globals(), globals())
 
         rootpart = ""
         for d in root.split('/'):

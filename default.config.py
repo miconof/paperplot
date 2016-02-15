@@ -36,6 +36,10 @@ numbers_fontsize=16     # for numbers above ylim
 # y axes limit
 ylim = None
 
+# set axis scales
+yscale = 'linear'
+xscale = 'linear'
+
 # legend
 bbox=(0, 0, 1, 1)       # legend located at the figure corner
 legend_ncol = 3         # number of columns for the legend (1 means vertical)
