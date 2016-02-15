@@ -253,6 +253,67 @@ def mk_barchart(title, xticks, legend, data, data_err=None, ylim=None):
     return plt
 
 
+def mk_linechart(title, xticks, legend, data, data_err=None, ylim=None):
+    assert(len(legend)==len(data))
+    ind = np.arange(len(xticks))    # the x locations for the groups
+
+    # Leave some empty space in the sides, useful for discrete xticks
+    if empty_side_space:
+        left_empty = float(ind[1])/2
+    else:
+        left_empty = 0
+
+    # create a new figure and axes instance
+    fig = plt.figure(figsize=figure_size) # figure size specified in config
+    ax = fig.add_subplot(111)
+
+    # Set ylim and xlim
+    if ylim:
+        ax.set_ylim(*ylim)
+    ax.set_xlim(right=len(ind))
+
+    # Set axis scales
+    ax.set_yscale(yscale)
+    ax.set_xscale(xscale)
+
+    # Plot all lines
+    lines = []
+    for i,d in enumerate(data):
+        lines.append(ax.plot(ind+left_empty, d, alpha=1, color=colors[i], marker=marker_patterns[i], **lineargs))
+
+    # general formating
+    set_titles(ax, title, xtitle, ytitle, title_fontsize,
+                        xtitle_fontsize, ytitle_fontsize, ylabel_fontsize)
+
+    # xticks possition and labels
+    ax.set_xticks(ind+left_empty)
+    ax.set_xticklabels(xticks, fontsize=xlabel_fontsize)
+    plt.gcf().subplots_adjust(right=left_empty)
+
+    # legend
+    leg = ax.legend([a[0] for a in lines],
+          legend,
+          loc=legend_loc,
+          ncol=legend_ncol,
+          frameon=True,
+          borderaxespad=1.,
+          bbox_to_anchor=bbox,
+          fancybox=True,
+          #prop={'size':10}, # smaller font size
+          )
+    for t in leg.get_texts():
+        t.set_fontsize(legend_fontsize)    # the legend text fontsize
+
+    # Graph shrinking if desired, no shrinking by default
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * shrink_width_factor, box.height * shrink_height_factor])
+
+    ax.set_axisbelow(True)
+    plt.gca().yaxis.grid(color='gray', linestyle='-', linewidth=0.5)
+    plt.tight_layout()
+    return plt
+
+
 def mk_charts(basedir):
     for root, dirs, files in os.walk(basedir):
 
@@ -337,7 +398,24 @@ def mk_charts(basedir):
             elif chart_type == "stacked":
                 plt = mk_stacked()
             elif chart_type == "linechart":
-                plt = mk_linechart()
+                # column names
+                if auto_column_names:
+                    column_names = header[1:]
+
+                # Add arithmetic and/or geometric means
+                if do_add_average:
+                    columns_data, columns_errdata, xtick_labels = add_average(columns_data, columns_errdata, xtick_labels)
+                elif do_add_geomean:
+                    columns_data, columns_errdata, xtick_labels = add_geomean(columns_data, columns_errdata, xtick_labels)
+
+                plt = mk_linechart(title=string.capwords(fname) if title == "from-filename" else title,
+                              xticks=xtick_labels,
+                              legend=column_names,
+                              data=columns_data,
+                              data_err = columns_errdata,
+                              ylim = ylim,
+                              )
+
             else:
                 print "Wrong chart type"
                 exit(1)

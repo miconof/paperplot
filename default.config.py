@@ -139,7 +139,10 @@ labels_y=-0.08                  # placement w.r.t y=0
 #################
 ### linechart ###
 #################
-
-
-
+lineargs={
+    "linewidth"     : 0,
+    "linestyle"     : 'None',
+    "markersize"    : 2
+    }
+empty_side_space = True
 
