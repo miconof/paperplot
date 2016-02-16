@@ -90,7 +90,7 @@ bw_palette_2 = "#DDDDDD #BBBBBB #999999 #777777 #555555 #333333"
 bw_palette_3 = "#FFFFFF #DDDDDD #BBBBBB #999999 #777777 #555555 #333333 #111111"
 
 # default is black and white
-colors = [colorConverter.to_rgb(a) for a in (palette_1 + palette_2).split()]
+colors = [colorConverter.to_rgb(a) for a in (bw_palette_2).split()]
 
 # use palette_blue2+palette_blue15 for colored
 #colors = [colorConverter.to_rgb(a) for a in (palette_blue2 + palette_blue15).split()]
