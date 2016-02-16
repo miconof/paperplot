@@ -243,6 +243,14 @@ def mk_barchart(title, xticks, legend, data, data_err=None, ylim=None):
     for t in leg.get_texts():
         t.set_fontsize(legend_fontsize)    # the legend text fontsize
 
+    # Draw horizontal lines
+    for line in hlines:
+        ax.axhline(**line)
+
+    # Draw text labels
+    for text in text_labels:
+        ax.text(**text)
+
     # Graph shrinking if desired, no shrinking by default
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * shrink_width_factor, box.height * shrink_height_factor])

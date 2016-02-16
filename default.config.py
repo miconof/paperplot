@@ -76,22 +76,18 @@ hatch_patterns = ( ' ', 'oo', '', '\\\\', 'x', '++', '//', 'O', '..', 'O', '-')
 marker_patterns = ( 's' , 'd' , '<' , 'h' , '^' , 'o' , 'p' , 'D' , 'H' ,
  '_' , '>' , 'v' , 'x' , ',', '+' , '*' , ',' , '.' , '1' , '2' , '3' , '4' , )
 
-# colors
-# palete_blue_simple = "#0070C0 lightblue"
-# palete_contrast = "green yellow lightsteelblue lightblue"
-### http://www.netstrider.com/tutorials/HTMLRef/color/
-palette_netscape_blue_green = "darkcyan lightseagreen turquoise aqua mediumturquoise cadetblue azure #AFEEEE darkturquoise teal"
-# palette_netscape_green = "forestgreen limegreen lime chartreuse lawngreen greenyellow palegreen lightgreen springgreen mediumspringgreen darkgreen seagreen mediumseagreen darkseagreen mediumaquamarine aquamarine green darkolivegreen olivedrab olive"
+# color palette
 ### http://www.colourlovers.com/palette/944213/forever_lost?widths=0
-palette_forever_lost = "#5D4157 #838689 #A8CABA #CAD7B2 #EBE3AA"
+color_palette_1 = "#5D4157 #838689 #A8CABA #CAD7B2 #EBE3AA"
 ### http://www.colourlovers.com/palette/1542449/fighting_the_9-5.?widths=0
-palette_fighting = "#262626 #475959 #689493 #9DC4C4 #EBDDC7"
-### http://www.colorcombos.com/color-schemes/2/ColorCombo2.html etc
-palette_blue2 = "#097054 #FFDE00 #6599FF #FF9900 "
-#palette_blue25 = "#0000FF #FF0000 #FFFFFF #333333 "
-palette_blue15 = "#CC0000 #99FF00 #FFCC00 #3333FF "
-palette_1 = "#FFFFFF #DDDDDD #BBBBBB #999999 "
-palette_2 = "#777777 #555555 #333333 #111111 "
+color_palette_2 = "#262626 #475959 #689493 #9DC4C4 #EBDDC7"
+### http://www.colourlovers.com/palette/580974/Adrift_in_Dreams
+color_palette_3 = "#CFF09E #A8DBA8 #79BD9A #3B8686 #0B486B"
+
+# bw palette
+bw_palette_1 = "#DDDDDD #AAAAAA #777777 #444444"
+bw_palette_2 = "#DDDDDD #BBBBBB #999999 #777777 #555555 #333333"
+bw_palette_3 = "#FFFFFF #DDDDDD #BBBBBB #999999 #777777 #555555 #333333 #111111"
 
 # default is black and white
 colors = [colorConverter.to_rgb(a) for a in (palette_1 + palette_2).split()]
@@ -107,6 +103,17 @@ mp.rcParams['ps.useafm'] = True
 mp.rcParams['pdf.use14corefonts'] = True
 #mp.rcParams['text.usetex'] = True
 
+# Draw horizontal lines using axhline(), accepts Line2D kwargs, see:
+# http://matplotlib.org/api/lines_api.html#matplotlib.lines.Line2D
+hlines = [ # Add one dictionary per line, example:
+        # { "y" : 1, "linewidth" : 1, "linestyle" : 'dashed'}
+        ]
+
+# Draw text labels using text(), accepts Text kwargs, see:
+# http://matplotlib.org/api/text_api.html#matplotlib.text.Text
+text_labels = [ # Add one dictionary per text label, example:
+        # { "x" : 0, "y" : 100, "s" : '1 day', "size" : 'x-large', "weight" : 'bold' }
+        ]
 
 ################
 ### barchart ###
