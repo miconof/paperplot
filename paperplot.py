@@ -176,7 +176,7 @@ def mk_clusterstacked(title, xticks, legend, data, data_err=None, ylim=None, xti
     ax.set_position([box.x0, box.y0, box.width * shrink_width_factor, box.height * shrink_height_factor])
 
     ax.set_axisbelow(True)
-    plt.gca().yaxis.grid(color='gray', linestyle='-', linewidth=0.5)
+    plt.gca().yaxis.grid(color='0.5', linestyle='--', linewidth=0.5)
     plt.tight_layout()
     return plt
 
@@ -256,7 +256,7 @@ def mk_barchart(title, xticks, legend, data, data_err=None, ylim=None):
     ax.set_position([box.x0, box.y0, box.width * shrink_width_factor, box.height * shrink_height_factor])
 
     ax.set_axisbelow(True)
-    plt.gca().yaxis.grid(color='gray', linestyle='-', linewidth=0.5)
+    plt.gca().yaxis.grid(color='0.5', linestyle='--', linewidth=0.5)
     plt.tight_layout()
     return plt
 
@@ -317,7 +317,7 @@ def mk_linechart(title, xticks, legend, data, data_err=None, ylim=None):
     ax.set_position([box.x0, box.y0, box.width * shrink_width_factor, box.height * shrink_height_factor])
 
     ax.set_axisbelow(True)
-    plt.gca().yaxis.grid(color='gray', linestyle='-', linewidth=0.5)
+    plt.gca().yaxis.grid(color='0.5', linestyle='--', linewidth=0.5)
     plt.tight_layout()
     return plt
 
