@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+
+import matplotlib as mp
+from matplotlib.colors import colorConverter
+
 ##################
 ### ALL charts ###
 ##################

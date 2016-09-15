@@ -8,7 +8,7 @@ import matplotlib as mp
 import matplotlib.pyplot as plt
 from matplotlib.colors import colorConverter
 from collections import OrderedDict
-
+from default_config import *
 
 def get_script_path():
     return os.path.dirname(os.path.realpath(sys.argv[0]))
@@ -29,16 +29,25 @@ def row_data_process(r):
     return r
 
 
-def read_csv_file(root, fname, fext):
-    # read csv file and return list
-    print "Updating the figure %s/%s.pdf" % (root, fname)
-    data = mp.mlab.csv2rec('%s/%s%s' % (root, fname, fext))
+def select_results(ra, rowfilters = None, colfilters = None):
+    # apply rowfilter dictionary
+    for k,v in rowfilters.items():
+        filter_idx = [i for i,s in enumerate(ra[k]) if s in v]
+        ra = ra[filter_idx]
+
+    # apply colfilters list
+    ra = ra[colfilters]
+    return ra
+
+
+def parse_recarray(ra):
+    # parse final recarray to obtain header and data objects
 
     d2 = []
     header = []
-    for d in data:
+    for d in ra:
         d2.append(row_data_process(d))
-    for n in data.dtype.names:
+    for n in ra.dtype.names:
         header.append(row_data_process(n))
 
     return d2, header
@@ -90,7 +99,32 @@ def add_geomean(data, errdata, names):
     return data, errdata, names
 
 
-def mk_clusterstacked(title, xticks, legend, data, data_err=None, ylim=None, xticks_per_bar=None):
+def mk_clusterstacked(title, ra):
+    # convert ra into header and data objects
+    alldata, header = parse_recarray(ra)
+
+    # labels, use benchmark names
+    xticks = list(OrderedDict.fromkeys([a[xticks_id] for a in alldata]))
+
+    # get additional xticks_per_bar
+    xticks_per_bar = [a[xticks_per_bar_id] for a in alldata]
+
+    # column names
+    if auto_column_names:
+        legend = header[2:]
+        column_ids_data = range(2, len(legend)+2)
+
+    # get data from specified columns
+    data, data_err = get_data(alldata, column_ids_data, column_ids_err)
+
+    # Add arithmetic and/or geometric means
+    if do_add_average:
+        print 'Warning AVERAGE not implemented for cluster stacked plots'
+        #columns_data, columns_errdata, xtick_labels = add_average(columns_data, columns_errdata, xtick_labels)
+    if do_add_geomean:
+        print 'Warning GEOMEAN not implemented for cluster stacked plots'
+        #columns_data, columns_errdata, xtick_labels = add_geomean(columns_data, columns_errdata, xtick_labels)
+
     assert(len(legend)==len(data))
     ind = np.arange(len(xticks))                # the x locations for the groups
     barwidth = 1.0/float(num_clustered+1)       # the width of the bars
@@ -181,7 +215,27 @@ def mk_clusterstacked(title, xticks, legend, data, data_err=None, ylim=None, xti
     return plt
 
 
-def mk_barchart(title, xticks, legend, data, data_err=None, ylim=None):
+def mk_barchart(title, ra):
+    # convert ra into header and data objects
+    alldata, header = parse_recarray(ra)
+
+    # labels, use benchmark names
+    xticks = list(OrderedDict.fromkeys([a[xticks_id] for a in alldata]))
+
+    # column names
+    if auto_column_names:
+        legend = header[1:]
+        column_ids_data = range(1, len(legend)+1)
+
+    # get data from specified columns
+    data, data_err = get_data(alldata, column_ids_data, column_ids_err)
+
+    # Add arithmetic and/or geometric means
+    if do_add_average:
+        data, data_err, xticks = add_average(data, data_err, xticks)
+    elif do_add_geomean:
+        data, data_err, xticks = add_geomean(data, data_err, xticks)
+
     assert(len(legend)==len(data))
     ind = np.arange(len(xticks))    # the x locations for the groups
     barwidth = 1.0/(len(legend)+1)  # the width of the bars
@@ -261,7 +315,27 @@ def mk_barchart(title, xticks, legend, data, data_err=None, ylim=None):
     return plt
 
 
-def mk_linechart(title, xticks, legend, data, data_err=None, ylim=None):
+def mk_linechart(title, ra):
+    # convert ra into header and data objects
+    alldata, header = parse_recarray(ra)
+
+    # labels, use benchmark names
+    xticks = list(OrderedDict.fromkeys([a[xticks_id] for a in alldata]))
+
+    # column names
+    if auto_column_names:
+        legend = header[1:]
+        column_ids_data = range(1, len(legend)+1)
+
+    # get data from specified columns
+    data, data_err = get_data(alldata, column_ids_data, column_ids_err)
+
+    # Add arithmetic and/or geometric means
+    if do_add_average:
+        data, data_err, xticks = add_average(data, data_err, xticks)
+    elif do_add_geomean:
+        data, data_err, xticks = add_geomean(data, data_err, xticks)
+
     assert(len(legend)==len(data))
     ind = np.arange(len(xticks))    # the x locations for the groups
 
@@ -322,12 +396,16 @@ def mk_linechart(title, xticks, legend, data, data_err=None, ylim=None):
     return plt
 
 
+def load_default_config():
+    default_config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'default_config.py')
+    execfile(default_config_path, globals(), globals())
+
+
 def mk_charts(basedir):
     for root, dirs, files in os.walk(basedir):
 
         # Reset default config and load local config if any
-        default_config_path = os.path.join(os.path.dirname(os.path.abspath(sys.argv[0])), 'default.config.py')
-        execfile(default_config_path, globals(), globals())
+        load_default_config()
 
         rootpart = ""
         for d in root.split('/'):
@@ -343,86 +421,28 @@ def mk_charts(basedir):
             if fext not in EXTENSIONS:
                 continue
 
-            # Read csv file, returns a list
-            data, header = read_csv_file(root, fname, fext)
-
-            # labels, use benchmark names
-            xtick_labels = list(OrderedDict.fromkeys([a[xticks_id] for a in data]))
-            #xtick_labels = [a[xticks_id] for a in data]
-
-            # get data from specified columns
-            columns_data, columns_errdata = get_data(data,
-                                                        column_ids_data,
-                                                        column_ids_err)
+            # Read csv file, returns a recarray
+            print "Updating the figure %s/%s.pdf" % (root, fname)
+            ra = mp.mlab.csv2rec('%s/%s%s' % (root, fname, fext))
 
             if chart_type == "barchart":
-                # column names
-                if auto_column_names:
-                    column_names = header[1:]
-
-                # Add arithmetic and/or geometric means
-                if do_add_average:
-                    columns_data, columns_errdata, xtick_labels = add_average(columns_data, columns_errdata, xtick_labels)
-                elif do_add_geomean:
-                    columns_data, columns_errdata, xtick_labels = add_geomean(columns_data, columns_errdata, xtick_labels)
-
+                # call the plotting function
                 plt = mk_barchart(title=string.capwords(fname) if title == "from-filename" else title,
-                              xticks=xtick_labels,
-                              legend=column_names,
-                              data=columns_data,
-                              data_err = columns_errdata,
-                              ylim = ylim,
-                              )
+                                    ra=ra)
 
             elif chart_type == "clusterstacked":
-                # column names
-                if auto_column_names:
-                    column_names = header[2:]
-
-                # labels, use benchmark names
-                #xtick_labels = list(OrderedDict.fromkeys([a[xticks_id] for a in data]))
-
-                # Add arithmetic and/or geometric means
-                if do_add_average:
-                    print 'Warning AVERAGE not implemented for cluster stacked plots'
-                    #columns_data, columns_errdata, xtick_labels = add_average(columns_data, columns_errdata, xtick_labels)
-                if do_add_geomean:
-                    print 'Warning GEOMEAN not implemented for cluster stacked plots'
-                    #columns_data, columns_errdata, xtick_labels = add_geomean(columns_data, columns_errdata, xtick_labels)
-
-                # get additional xticks_per_bar
-                xticks_per_bar_labels = [a[xticks_per_bar_id] for a in data]
-
                 # call the plotting function
                 plt = mk_clusterstacked(title=string.capwords(fname) if title == "from-filename" else title,
-                              xticks=xtick_labels,
-                              legend=column_names,
-                              data=columns_data,
-                              data_err = columns_errdata,
-                              ylim = ylim,
-                              xticks_per_bar=xticks_per_bar_labels,
-                              )
+                                    ra=ra)
 
             elif chart_type == "stacked":
+                # call the plotting function
                 plt = mk_stacked()
+
             elif chart_type == "linechart":
-                # column names
-                if auto_column_names:
-                    column_names = header[1:]
-
-                # Add arithmetic and/or geometric means
-                if do_add_average:
-                    columns_data, columns_errdata, xtick_labels = add_average(columns_data, columns_errdata, xtick_labels)
-                elif do_add_geomean:
-                    columns_data, columns_errdata, xtick_labels = add_geomean(columns_data, columns_errdata, xtick_labels)
-
+                # call the plotting function
                 plt = mk_linechart(title=string.capwords(fname) if title == "from-filename" else title,
-                              xticks=xtick_labels,
-                              legend=column_names,
-                              data=columns_data,
-                              data_err = columns_errdata,
-                              ylim = ylim,
-                              )
+                                    ra=ra)
 
             else:
                 print "Wrong chart type"
