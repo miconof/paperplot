@@ -29,14 +29,21 @@ def row_data_process(r):
     return r
 
 
-def select_results(ra, rowfilters = None, colfilters = None):
+def select_results(ra, rowfilters = None, colfilters = None, sortby = None):
     # apply rowfilter dictionary
     for k,v in rowfilters.items():
         filter_idx = [i for i,s in enumerate(ra[k]) if s in v]
         ra = ra[filter_idx]
 
     # apply colfilters list
-    ra = ra[colfilters]
+    if colfilters:
+        ra = ra[colfilters]
+
+    # sortby
+    if sortby:
+        for s in sortby:
+            ra.sort(order=s)
+
     return ra
 
 
@@ -314,66 +321,82 @@ def mk_barchart(title, ra):
     plt.tight_layout()
     return plt
 
+def get_line_data(data):
+    labels = [a[1] for a in data]
+    x = [a[2] for a in data]
+    y = [a[3] for a in data]
+    return labels, x, y
 
+
+# expects ["legend element", "data point label", "x", "y"]
 def mk_linechart(title, ra):
     # convert ra into header and data objects
     alldata, header = parse_recarray(ra)
 
-    # labels, use benchmark names
-    xticks = list(OrderedDict.fromkeys([a[xticks_id] for a in alldata]))
+    legend = list(set([elem[0] for elem in alldata]))
 
-    # column names
-    if auto_column_names:
-        legend = header[1:]
-        column_ids_data = range(1, len(legend)+1)
-
+    labels = []
+    x = []
+    y = []
     # get data from specified columns
-    data, data_err = get_data(alldata, column_ids_data, column_ids_err)
+    for b in legend:
+        labels.append([elem[1] for elem in alldata if elem[0] == b])
+        x.append([elem[2] for elem in alldata if elem[0] == b])
+        y.append([elem[3] for elem in alldata if elem[0] == b])
 
     # Add arithmetic and/or geometric means
     if do_add_average:
-        data, data_err, xticks = add_average(data, data_err, xticks)
-    elif do_add_geomean:
-        data, data_err, xticks = add_geomean(data, data_err, xticks)
+        print 'Warning AVERAGE not implemented for cluster stacked plots'
+        #columns_data, columns_errdata, xtick_labels = add_average(columns_data, columns_errdata, xtick_labels)
+    if do_add_geomean:
+        print 'Warning GEOMEAN not implemented for cluster stacked plots'
+        #columns_data, columns_errdata, xtick_labels = add_geomean(columns_data, columns_errdata, xtick_labels)
 
-    assert(len(legend)==len(data))
-    ind = np.arange(len(xticks))    # the x locations for the groups
-
-    # Leave some empty space in the sides, useful for discrete xticks
-    if empty_side_space:
-        left_empty = float(ind[1])/2
-    else:
-        left_empty = 0
+    assert(len(legend)==len(labels)==len(x)==len(y))
 
     # create a new figure and axes instance
     fig = plt.figure(figsize=figure_size) # figure size specified in config
     ax = fig.add_subplot(111)
 
     # Set ylim and xlim
-    if ylim:
-        ax.set_ylim(*ylim)
-    ax.set_xlim(right=len(ind))
+    # if ylim:
+        # ax.set_ylim(*ylim)
+    # ax.set_xlim(right=len(ind))
 
     # Set axis scales
     ax.set_yscale(yscale)
     ax.set_xscale(xscale)
 
     # Plot all lines
-    lines = []
-    for i,d in enumerate(data):
-        lines.append(ax.plot(ind+left_empty, d, alpha=1, color=colors[i], marker=marker_patterns[i], **lineargs))
+    mylines = []
+    for i,d in enumerate(labels):
+        mylines.append(ax.plot(x[i], y[i], alpha=1,
+                                color=colors[i],
+                                marker=marker_patterns[i],
+                                mec=colors[i],
+                                linestyle=line_styles[i],
+                                **lineargs))
+
+    if do_labels:
+        for i,l in enumerate(labels):
+            for label, xval, yval in zip(labels[i], x[i], y[i]):
+                plt.annotate(label,
+                             xy = (xval, yval), xytext = (10, -10),
+                             textcoords = 'offset points', ha = 'center', va = 'center',
+                             # bbox = dict(boxstyle = 'round,pad=0.2', fc = 'black', alpha = .3),
+                             # arrowprops = dict(arrowstyle = '->', connectionstyle = 'arc3,rad=0')
+                             )
 
     # general formating
     set_titles(ax, title, xtitle, ytitle, title_fontsize,
                         xtitle_fontsize, ytitle_fontsize, ylabel_fontsize)
 
     # xticks possition and labels
-    ax.set_xticks(ind+left_empty)
-    ax.set_xticklabels(xticks, fontsize=xlabel_fontsize)
-    plt.gcf().subplots_adjust(right=left_empty)
+    # ax.set_xticks(ind+left_empty)
+    # plt.gcf().subplots_adjust(right=left_empty)
 
     # legend
-    leg = ax.legend([a[0] for a in lines],
+    leg = ax.legend([a[0] for a in mylines],
           legend,
           loc=legend_loc,
           ncol=legend_ncol,

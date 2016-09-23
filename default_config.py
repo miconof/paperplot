@@ -78,7 +78,7 @@ shrink_height_factor=1.
 
 # hatching and marking patterns
 hatch_patterns = ( ' ', 'oo', '', '\\\\', 'x', '++', '//', 'O', '..', 'O', '-')
-marker_patterns = ( 's' , 'd' , '<' , 'h' , '^' , 'o' , 'p' , 'D' , 'H' ,
+marker_patterns = ( 'o' , 's' , 'd' , '<' , 'h' , '^' , 'p' , 'D' , 'H' ,
  '_' , '>' , 'v' , 'x' , ',', '+' , '*' , ',' , '.' , '1' , '2' , '3' , '4' , )
 
 # color palette
@@ -152,9 +152,8 @@ labels_y=-0.08                  # placement w.r.t y=0
 ### linechart ###
 #################
 lineargs={
-    "linewidth"     : 0,
-    "linestyle"     : 'None',
-    "markersize"    : 2
+    "linewidth"     : 1,
+    "markersize"    : 6
     }
-empty_side_space = True
-
+line_styles = ('-', '--', '-.', ':', 'steps', ' ')
+do_labels = True
