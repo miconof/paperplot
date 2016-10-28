@@ -6,9 +6,11 @@ import string
 import numpy as np
 import matplotlib as mp
 import matplotlib.pyplot as plt
+import csv
 from matplotlib.colors import colorConverter
 from collections import OrderedDict
 from default_config import *
+from pprint import pprint
 
 def get_script_path():
     return os.path.dirname(os.path.realpath(sys.argv[0]))
@@ -444,9 +446,16 @@ def mk_charts(basedir):
             if fext not in EXTENSIONS:
                 continue
 
+            filename = '%s/%s%s' % (root, fname, fext)
+
+            # csv2rec will lower case the headers, spaces will be converted to underscores, and illegal attribute name characters removed.
+            # this is a workaround
+            with open(filename, 'r') as f_input:
+                 headers = next(csv.reader(f_input))
+
             # Read csv file, returns a recarray
             print "Updating the figure %s/%s.pdf" % (root, fname)
-            ra = mp.mlab.csv2rec('%s/%s%s' % (root, fname, fext))
+            ra = mp.mlab.csv2rec('%s/%s%s' % (root, fname, fext), names=headers, skiprows=1)
 
             if chart_type == "barchart":
                 # call the plotting function

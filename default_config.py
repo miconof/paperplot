@@ -106,7 +106,10 @@ EXTENSIONS=['.csv']
 # paper formating - allow only type 1 core fonts
 mp.rcParams['ps.useafm'] = True
 mp.rcParams['pdf.use14corefonts'] = True
-#mp.rcParams['text.usetex'] = True
+mp.rcParams['text.usetex'] = True #Let TeX do the typsetting
+mp.rcParams['text.latex.preamble'] = [r'\usepackage{sansmath}', r'\sansmath'] #Force sans-serif math mode (for axes labels)
+mp.rcParams['font.family'] = 'sans-serif' # ... for regular text
+mp.rcParams['font.sans-serif'] = 'Helvetica, Avant Garde, Computer Modern Sans serif' # Choose a nice font here
 
 # Draw horizontal lines using axhline(), accepts Line2D kwargs, see:
 # http://matplotlib.org/api/lines_api.html#matplotlib.lines.Line2D
