@@ -29,7 +29,7 @@ def row_data_process(r):
     return r
 
 
-def select_results(ra, rowfilters = None, colfilters = None, sortby = None):
+def select_results(ra, rowfilters = None, colfilters = None, sortby = None, newfield = None):
     # apply rowfilter dictionary
     for k,v in rowfilters.items():
         filter_idx = [i for i,s in enumerate(ra[k]) if s in v]
@@ -39,10 +39,20 @@ def select_results(ra, rowfilters = None, colfilters = None, sortby = None):
     if colfilters:
         ra = ra[colfilters]
 
+    # add a new field (column) in the recarray
+    if newfield:
+        new_desc = ra.dtype.descr
+        new_desc.insert(1, ('newfield', type(newfield))) # insert dtype in position 1
+        y = np.empty(ra.shape, dtype=new_desc)
+        for name in ra.dtype.names:
+            y[name] = ra[name]
+        y['newfield'] = [newfield] * ra.size
+        ra = y
+
     # sortby
     if sortby:
-        for s in sortby:
-            ra.sort(order=s)
+        # for s in sortby:
+        ra.sort(order=sortby)
 
     return ra
 
@@ -329,48 +339,94 @@ def get_line_data(data):
 
 
 # expects ["legend element", "data point label", "x", "y"]
-def mk_linechart(title, ra):
+def mk_linechart(title, ra, axis_line_split=None):
     # convert ra into header and data objects
     alldata, header = parse_recarray(ra)
 
-    legend = list(set([elem[0] for elem in alldata]))
+    names = [elem[0] for elem in alldata]
+    legend = list(sorted(set(names), key=names.index)) # Keep order
 
     labels = []
     x = []
     y = []
     # get data from specified columns
     for b in legend:
-        labels.append([elem[1] for elem in alldata if elem[0] == b])
-        x.append([elem[2] for elem in alldata if elem[0] == b])
-        y.append([elem[3] for elem in alldata if elem[0] == b])
+        if do_labels:
+            labels.append([elem[1] for elem in alldata if elem[0] == b])
+            x.append([elem[2] for elem in alldata if elem[0] == b])
+            y.append([elem[3] for elem in alldata if elem[0] == b])
+        else:
+            x.append([elem[1] for elem in alldata if elem[0] == b])
+            y.append([elem[2] for elem in alldata if elem[0] == b])
 
     # Add arithmetic and/or geometric means
     if do_add_average:
         print 'Warning AVERAGE not implemented for cluster stacked plots'
-        #columns_data, columns_errdata, xtick_labels = add_average(columns_data, columns_errdata, xtick_labels)
-    if do_add_geomean:
-        print 'Warning GEOMEAN not implemented for cluster stacked plots'
-        #columns_data, columns_errdata, xtick_labels = add_geomean(columns_data, columns_errdata, xtick_labels)
+    elif do_add_geomean:
+        gmean = []
+        for i in range(len(y[0])):
+            gmean.append(reduce(lambda xx, yy: xx*yy, [elem[i] for elem in y])**(1.0/len(y[0])))
+        y.append(gmean)
+        legend.append('Geomean')
+        x.append(x[0])
 
-    assert(len(legend)==len(labels)==len(x)==len(y))
+    if do_labels:
+        assert(len(legend)==len(labels)==len(x)==len(y))
+    else:
+        assert(len(legend)==len(x)==len(y))
 
     # create a new figure and axes instance
     fig = plt.figure(figsize=figure_size) # figure size specified in config
     ax = fig.add_subplot(111)
 
-    # Set ylim and xlim
-    # if ylim:
-        # ax.set_ylim(*ylim)
-    # ax.set_xlim(right=len(ind))
-
     # Set axis scales
     ax.set_yscale(yscale)
     ax.set_xscale(xscale)
 
+    # Set ylim and xlim
+    if ylim:
+        ax.set_ylim(*ylim)
+    if num_yticks:
+        ax.set_yticks(np.linspace(ax.get_ybound()[0], ax.get_ybound()[1], num_yticks))
+
+    ax.tick_params(axis='both', which='major', pad=5)
+    # Plot x as xticks
+    if do_x_as_xticks:
+        xticks_labels = [[str(j) for j in elem] for elem in x]
+        x = [range(1,len(elem)+1) for elem in x]
+        ax.set_xlim(x[0][0]-0.25, x[0][-1]+0.25)
+        # xticks possition and labels
+        ax.set_xticks(x[0])
+        ax.set_xticklabels(xticks_labels[0], fontsize=xlabel_fontsize)
+        plt.gcf().subplots_adjust(bottom=0.2)
+
+    # Check if secondary y axis
+    if axis_line_split:
+        ax2 = ax.twinx()
+        ax2.set_yscale(yscale)
+        ax2.tick_params(axis='both', which='major', pad=5)
+        if do_x_as_xticks:
+            ax2.set_xlim(x[0][0]-0.25, x[0][-1]+0.25)
+        if ylim2:
+            ax2.set_ylim(*ylim2)
+        if num_yticks:
+            ax2.set_yticks(np.linspace(ax2.get_ybound()[0], ax2.get_ybound()[1], num_yticks))
+        ax2.set_ylabel(ytitle2, fontsize=ytitle_fontsize)
+        for item in ax2.get_yticklabels():
+            item.set_fontsize(ylabel_fontsize)
+
     # Plot all lines
     mylines = []
-    for i,d in enumerate(labels):
-        mylines.append(ax.plot(x[i], y[i], alpha=1,
+    for i,d in enumerate(x):
+        if axis_line_split and i >= axis_line_split:
+            mylines.append(ax2.plot(x[i], y[i], alpha=1,
+                                color=colors[i],
+                                marker=marker_patterns[i],
+                                mec=colors[i],
+                                linestyle=line_styles[i],
+                                **lineargs))
+        else:
+            mylines.append(ax.plot(x[i], y[i], alpha=1,
                                 color=colors[i],
                                 marker=marker_patterns[i],
                                 mec=colors[i],
@@ -390,10 +446,6 @@ def mk_linechart(title, ra):
     # general formating
     set_titles(ax, title, xtitle, ytitle, title_fontsize,
                         xtitle_fontsize, ytitle_fontsize, ylabel_fontsize)
-
-    # xticks possition and labels
-    # ax.set_xticks(ind+left_empty)
-    # plt.gcf().subplots_adjust(right=left_empty)
 
     # legend
     leg = ax.legend([a[0] for a in mylines],

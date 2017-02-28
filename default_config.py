@@ -29,6 +29,7 @@ column_ids_err = [] # not implemented
 title = "from-filename"
 xtitle='X-Axis Title'
 ytitle='Y-Axis Title'
+ytitle2='Y-Axis2 Title'
 title_fontsize=20       # figure title
 xtitle_fontsize=16      # x axis title
 ytitle_fontsize=17      # y axis title
@@ -40,6 +41,8 @@ numbers_fontsize=16     # for numbers above ylim
 
 # y axes limit
 ylim = None
+ylim2 = None
+num_yticks = None
 
 # set axis scales
 yscale = 'linear'
@@ -157,3 +160,4 @@ lineargs={
     }
 line_styles = ('-', '--', '-.', ':', 'steps', ' ')
 do_labels = True
+do_x_as_xticks = False
