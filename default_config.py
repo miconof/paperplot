@@ -39,6 +39,9 @@ legend_fontsize=20      # legend
 text_fontsize=14.5      # x axis cluster labels
 numbers_fontsize=16     # for numbers above ylim
 
+# Split for secondary axis
+line_split = None
+
 # y axes limit
 ylim = None
 ylim2 = None
@@ -142,9 +145,13 @@ xticks_per_bar_id = 1
 # number of clustered bars for clusterstacked charts
 num_clustered = 4
 
+# print sublabels per cluster
+do_sublabels = True
+
 # xtick labels for each element of the cluster
 labels_rotation='horizontal'    # rotation
 labels_y=-0.08                  # placement w.r.t y=0
+xticks_y = -0.05
 
 
 ###############
@@ -164,3 +171,5 @@ lineargs={
 line_styles = ('-', '--', '-.', ':', 'steps', ' ')
 do_labels = True
 do_x_as_xticks = False
+
+linecolors = [colorConverter.to_rgb(a) for a in (bw_palette_2).split()]

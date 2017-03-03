@@ -120,12 +120,16 @@ def add_geomean(data, errdata, names):
 
 def mk_clusterstacked(title, ra):
     # convert ra into header and data objects
-    alldata, header = parse_recarray(ra)
+    if line_split:
+        alldata, header = parse_recarray(ra[:line_split])
+        alldata2, header2 = parse_recarray(ra[line_split:])
+    else:
+        alldata, header = parse_recarray(ra)
 
-    # labels, use benchmark names
+    # labels, use benchmark names untill line_split
     xticks = list(OrderedDict.fromkeys([a[xticks_id] for a in alldata]))
 
-    # get additional xticks_per_bar
+    # get additional xticks_per_bar untill line_split
     xticks_per_bar = [a[xticks_per_bar_id] for a in alldata]
 
     # column names
@@ -195,23 +199,82 @@ def mk_clusterstacked(title, ra):
                         y=ylim[1]+label_y_space, s='%s'%round(elem,2), ha='center', va='bottom',
                         rotation=label_angle_rotation, fontsize=numbers_fontsize)
 
+
+    # Check if secondary y axis
+    if line_split:
+        names = [elem[0] for elem in alldata2]
+        legend2 = list(sorted(set(names), key=names.index)) # Keep order
+        legend.extend(legend2)
+
+        labels = []
+        x = []
+        y = []
+        # get data from specified columns
+        for b in legend2:
+            if do_labels:
+                labels.append([elem[1] for elem in alldata2 if elem[0] == b])
+                x.append([elem[2] for elem in alldata2 if elem[0] == b])
+                y.append([elem[3] for elem in alldata2 if elem[0] == b])
+            else:
+                x.append([elem[1] for elem in alldata2 if elem[0] == b])
+                y.append([elem[2] for elem in alldata2 if elem[0] == b])
+
+        ax2 = ax.twinx()
+        ax2.set_yscale(yscale)
+        ax2.tick_params(axis='both', which='major', pad=5)
+        if do_x_as_xticks:
+            ax2.set_xlim(x[0][0]-0.25, x[0][-1]+0.25)
+        if ylim2:
+            ax2.set_ylim(*ylim2)
+        if num_yticks:
+            ax2.set_yticks(np.linspace(ax2.get_ybound()[0], ax2.get_ybound()[1], num_yticks))
+        ax2.set_ylabel(ytitle2, fontsize=ytitle_fontsize)
+        for item in ax2.get_yticklabels():
+            item.set_fontsize(ylabel_fontsize)
+
+        # Plot all lines
+        mylines = []
+        for i,d in enumerate(x):
+            mylines.append(ax2.plot(left_empty+ind+barwidth/2, y[i], alpha=1,
+                                color=linecolors[i],
+                                marker=marker_patterns[i],
+                                mec=linecolors[i],
+                                linestyle=line_styles[i],
+                                **lineargs))
+
+        if do_labels:
+            for i,l in enumerate(labels):
+                for label, xval, yval in zip(labels[i], x[i], y[i]):
+                    plt.annotate(label,
+                             xy = (xval, yval), xytext = (10, -10),
+                             textcoords = 'offset points', ha = 'center', va = 'center',
+                             # bbox = dict(boxstyle = 'round,pad=0.2', fc = 'black', alpha = .3),
+                             # arrowprops = dict(arrowstyle = '->', connectionstyle = 'arc3,rad=0')
+                             )
+
     # general formating
     set_titles(ax, title, xtitle, ytitle, title_fontsize,
                         xtitle_fontsize, ytitle_fontsize, ylabel_fontsize)
+    if num_yticks:
+        ax.set_yticks(np.linspace(ax.get_ybound()[0], ax.get_ybound()[1], num_yticks))
 
     # xticks possition and labels
     ax.set_xticks(ind + left_empty + (num_clustered/2.0)*barwidth)
-    ax.set_xticklabels(xticks,y=-.05, fontsize=xlabel_fontsize)
+    ax.set_xticklabels(xticks, y=xticks_y, fontsize=xlabel_fontsize)
     plt.gcf().subplots_adjust(bottom=0.2)
 
     # sublabels for each element of the cluster
-    for i in xrange(num_clustered):
-        for idx in xrange(len(ind)):
-            ax.text(rects[i][idx].get_x()+rects[i][idx].get_width()/2., labels_y, '%s'%xticks_per_bar[i],
-                ha='center', va='baseline', fontsize=text_fontsize, rotation=labels_rotation)
+    if do_sublabels:
+        for i in xrange(num_clustered):
+            for idx in xrange(len(ind)):
+                ax.text(rects[i][idx].get_x()+rects[i][idx].get_width()/2., labels_y, '%s'%xticks_per_bar[i],
+                    ha='center', va='baseline', fontsize=text_fontsize, rotation=labels_rotation)
 
     # legend
-    leg = ax.legend([a[0] for a in rects[0::num_clustered]], # get the right colors
+    lencolors = [a[0] for a in rects[0::num_clustered]]
+    if line_split:
+        lencolors.extend([a[0] for a in mylines])
+    leg = ax.legend(lencolors, # get the right colors
           legend, # labels
           loc=legend_loc,
           ncol=legend_ncol,
@@ -229,7 +292,9 @@ def mk_clusterstacked(title, ra):
     ax.set_position([box.x0, box.y0, box.width * shrink_width_factor, box.height * shrink_height_factor])
 
     ax.set_axisbelow(True)
-    plt.gca().yaxis.grid(color='0.5', linestyle='--', linewidth=0.5)
+    if line_split:
+        ax2.set_axisbelow(True)
+    plt.gca().yaxis.grid(color='0.5', linestyle='--', linewidth=0.3)
     plt.tight_layout()
     return plt
 
@@ -329,7 +394,9 @@ def mk_barchart(title, ra):
     ax.set_position([box.x0, box.y0, box.width * shrink_width_factor, box.height * shrink_height_factor])
 
     ax.set_axisbelow(True)
-    plt.gca().yaxis.grid(color='0.5', linestyle='--', linewidth=0.5)
+    if line_split:
+        ax2.set_axisbelow(True)
+    plt.gca().yaxis.grid(color='0.5', linestyle='--', linewidth=0.3)
     plt.tight_layout()
     return plt
 
@@ -341,7 +408,7 @@ def get_line_data(data):
 
 
 # expects ["legend element", "data point label", "x", "y"]
-def mk_linechart(title, ra, axis_line_split=None):
+def mk_linechart(title, ra):
     # convert ra into header and data objects
     alldata, header = parse_recarray(ra)
 
@@ -403,7 +470,7 @@ def mk_linechart(title, ra, axis_line_split=None):
         plt.gcf().subplots_adjust(bottom=0.2)
 
     # Check if secondary y axis
-    if axis_line_split:
+    if line_split:
         ax2 = ax.twinx()
         ax2.set_yscale(yscale)
         ax2.tick_params(axis='both', which='major', pad=5)
@@ -420,18 +487,18 @@ def mk_linechart(title, ra, axis_line_split=None):
     # Plot all lines
     mylines = []
     for i,d in enumerate(x):
-        if axis_line_split and i >= axis_line_split:
+        if line_split and i >= line_split:
             mylines.append(ax2.plot(x[i], y[i], alpha=1,
-                                color=colors[i],
+                                color=linecolors[i],
                                 marker=marker_patterns[i],
-                                mec=colors[i],
+                                mec=linecolors[i],
                                 linestyle=line_styles[i],
                                 **lineargs))
         else:
             mylines.append(ax.plot(x[i], y[i], alpha=1,
-                                color=colors[i],
+                                color=linecolors[i],
                                 marker=marker_patterns[i],
-                                mec=colors[i],
+                                mec=linecolors[i],
                                 linestyle=line_styles[i],
                                 **lineargs))
 
@@ -468,7 +535,9 @@ def mk_linechart(title, ra, axis_line_split=None):
     ax.set_position([box.x0, box.y0, box.width * shrink_width_factor, box.height * shrink_height_factor])
 
     ax.set_axisbelow(True)
-    plt.gca().yaxis.grid(color='0.5', linestyle='--', linewidth=0.5)
+    if line_split:
+        ax2.set_axisbelow(True)
+    plt.gca().yaxis.grid(color='0.5', linestyle='--', linewidth=0.3)
     plt.tight_layout()
     return plt
 
