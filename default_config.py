@@ -17,6 +17,9 @@ figure_size = (5,4)
 # ID of the column that holds the xtick (horizontal) labels
 xticks_id = 0
 
+# Rotation for xticks labels
+xticks_rotation = 'horizontal'
+
 # Column names
 auto_column_names = True                        # use column names from header row of CSV file
 column_names = ["First", "Second", "Third"]     # if auto_column_names is False specify column names here
@@ -76,6 +79,9 @@ do_add_geomean = False
 label_enable=1                  # enable labels
 label_angle_rotation=0          # rotation angle
 label_y_space=0                 # distance after ylim
+
+# relative possition to marker for text labels
+xytext_tomarker = (10, -10)
 
 # Allows modification of the figure bounding box in case some elements
 # like the legend get cut off of the figure.

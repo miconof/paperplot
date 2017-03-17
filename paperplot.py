@@ -94,6 +94,8 @@ def set_titles(ax, title, xtitle, ytitle, title_fontsize,
     ax.set_ylabel(ytitle, fontsize=ytitle_fontsize)
     for item in ax.get_yticklabels():
         item.set_fontsize(ylabel_fontsize)
+    for item in ax.get_xticklabels():
+        item.set_fontsize(xlabel_fontsize)
 
 
 def add_average(data, errdata, names):
@@ -260,7 +262,7 @@ def mk_clusterstacked(title, ra):
 
     # xticks possition and labels
     ax.set_xticks(ind + left_empty + (num_clustered/2.0)*barwidth)
-    ax.set_xticklabels(xticks, y=xticks_y, fontsize=xlabel_fontsize)
+    ax.set_xticklabels(xticks, y=xticks_y, fontsize=xlabel_fontsize, rotation=xticks_rotation)
     plt.gcf().subplots_adjust(bottom=0.2)
 
     # sublabels for each element of the cluster
@@ -364,7 +366,7 @@ def mk_barchart(title, ra):
 
     # xticks possition and labels
     ax.set_xticks(ind + left_empty + (len(legend)/2.0)*barwidth)
-    ax.set_xticklabels(xticks, fontsize=xlabel_fontsize)
+    ax.set_xticklabels(xticks, fontsize=xlabel_fontsize, rotation=xticks_rotation)
     plt.gcf().subplots_adjust(bottom=0.2)
 
     # legend
@@ -466,7 +468,7 @@ def mk_linechart(title, ra):
         ax.set_xlim(x[0][0]-0.25, x[0][-1]+0.25)
         # xticks possition and labels
         ax.set_xticks(x[0])
-        ax.set_xticklabels(xticks_labels[0], fontsize=xlabel_fontsize)
+        ax.set_xticklabels(xticks_labels[0], fontsize=xlabel_fontsize, rotation=xticks_rotation)
         plt.gcf().subplots_adjust(bottom=0.2)
 
     # Check if secondary y axis
@@ -506,8 +508,8 @@ def mk_linechart(title, ra):
         for i,l in enumerate(labels):
             for label, xval, yval in zip(labels[i], x[i], y[i]):
                 plt.annotate(label,
-                             xy = (xval, yval), xytext = (10, -10),
-                             textcoords = 'offset points', ha = 'center', va = 'center',
+                             xy = (xval, yval), xytext = xytext_tomarker,
+                             textcoords = 'offset points', ha = 'center', va = 'center', fontsize = text_fontsize,
                              # bbox = dict(boxstyle = 'round,pad=0.2', fc = 'black', alpha = .3),
                              # arrowprops = dict(arrowstyle = '->', connectionstyle = 'arc3,rad=0')
                              )
