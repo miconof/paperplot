@@ -135,6 +135,10 @@ text_labels = [ # Add one dictionary per text label, example:
         # { "x" : 0, "y" : 100, "s" : '1 day', "size" : 'x-large', "weight" : 'bold' }
         ]
 
+points = [ # Add one dictionary per point, example:
+        # { "x" : 0, "y" : 100, "color" : 'green', "marker" : 'o', "markerfacecolor" : 'blue', "markersize" : 12 }
+        ]
+
 ################
 ### barchart ###
 ################

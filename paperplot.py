@@ -514,6 +514,18 @@ def mk_linechart(title, ra):
                              # arrowprops = dict(arrowstyle = '->', connectionstyle = 'arc3,rad=0')
                              )
 
+    # plot points
+    for pnt in points:
+        ax.plot(pnt["x"], pnt["y"], color = pnt["color"], marker = pnt["marker"], markersize = pnt["markersize"], mec = pnt["mec"])
+
+    # Draw horizontal lines
+    for line in hlines:
+        ax.axhline(**line)
+
+    # Draw text labels
+    for text in text_labels:
+        ax.text(**text)
+
     # general formating
     set_titles(ax, title, xtitle, ytitle, title_fontsize,
                         xtitle_fontsize, ytitle_fontsize, ylabel_fontsize)
