@@ -38,7 +38,7 @@ xtitle_fontsize=16      # x axis title
 ytitle_fontsize=17      # y axis title
 xlabel_fontsize=15.5    # x axis labels
 ylabel_fontsize=16      # y axis labels
-legend_fontsize=20      # legend
+legend_fontsize=18      # legend
 text_fontsize=14.5      # x axis cluster labels
 numbers_fontsize=16     # for numbers above ylim
 
