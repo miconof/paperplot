@@ -49,6 +49,7 @@ line_split = None
 ylim = None
 ylim2 = None
 num_yticks = None
+num_xticks = None
 
 # set axis scales
 yscale = 'linear'
@@ -58,6 +59,7 @@ xscale = 'linear'
 bbox=(0, 0, 1, 1)       # legend located at the figure corner
 legend_ncol = 3         # number of columns for the legend (1 means vertical)
 legend_loc = 'best'
+do_legend = True
 # 'best'         : 0, (only implemented for axis legends)
 # 'upper right'  : 1,
 # 'upper left'   : 2,

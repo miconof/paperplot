@@ -11,6 +11,7 @@ from matplotlib.colors import colorConverter
 from collections import OrderedDict
 from default_config import *
 from pprint import pprint
+from adjustText import adjust_text
 
 def get_script_path():
     return os.path.dirname(os.path.realpath(sys.argv[0]))
@@ -298,7 +299,7 @@ def mk_clusterstacked(title, ra):
         ax2.set_axisbelow(True)
     plt.gca().yaxis.grid(color='0.5', linestyle='--', linewidth=0.3)
     plt.tight_layout()
-    return plt
+    return plt,leg
 
 
 def mk_barchart(title, ra):
@@ -400,7 +401,7 @@ def mk_barchart(title, ra):
         ax2.set_axisbelow(True)
     plt.gca().yaxis.grid(color='0.5', linestyle='--', linewidth=0.3)
     plt.tight_layout()
-    return plt
+    return plt,leg
 
 def get_line_data(data):
     labels = [a[1] for a in data]
@@ -458,7 +459,10 @@ def mk_linechart(title, ra):
     if ylim:
         ax.set_ylim(*ylim)
     if num_yticks:
-        ax.set_yticks(np.linspace(ax.get_ybound()[0], ax.get_ybound()[1], num_yticks))
+        # ax.set_yticks(np.linspace(ax.get_ybound()[0], ax.get_ybound()[1], num_yticks))
+        plt.locator_params(axis='y', nbins=num_yticks)
+    if num_xticks:
+        plt.locator_params(axis='x', nbins=num_xticks)
 
     ax.tick_params(axis='both', which='major', pad=5)
     # Plot x as xticks
@@ -481,13 +485,17 @@ def mk_linechart(title, ra):
         if ylim2:
             ax2.set_ylim(*ylim2)
         if num_yticks:
-            ax2.set_yticks(np.linspace(ax2.get_ybound()[0], ax2.get_ybound()[1], num_yticks))
+            # ax2.set_yticks(np.linspace(ax2.get_ybound()[0], ax2.get_ybound()[1], num_yticks))
+            plt.locator_params(axis='y', nbins=num_yticks)
+        if num_xticks:
+            plt.locator_params(axis='x', nbins=num_xticks)
         ax2.set_ylabel(ytitle2, fontsize=ytitle_fontsize)
         for item in ax2.get_yticklabels():
             item.set_fontsize(ylabel_fontsize)
 
     # Plot all lines
     mylines = []
+    texts = []
     for i,d in enumerate(x):
         if line_split and i >= line_split:
             mylines.append(ax2.plot(x[i], y[i], alpha=1,
@@ -496,6 +504,15 @@ def mk_linechart(title, ra):
                                 mec=linecolors[i],
                                 linestyle=line_styles[i],
                                 **lineargs))
+            if do_labels:
+                for label, xval, yval in zip(labels[i], x[i], y[i]):
+                    # ax2.annotate(label,
+                                 # xy = (xval, yval), xytext = xytext_tomarker,
+                                 # textcoords = 'offset points', ha = 'center', va = 'center', fontsize = text_fontsize,
+                                 # )
+                    texts.append(ax2.text(xval,yval,label,size=text_fontsize))
+                # adjust_text(texts, arrowprops=dict(arrowstyle="-", color='k', lw=0.5))
+                # adjust_text(texts)
         else:
             mylines.append(ax.plot(x[i], y[i], alpha=1,
                                 color=linecolors[i],
@@ -503,16 +520,30 @@ def mk_linechart(title, ra):
                                 mec=linecolors[i],
                                 linestyle=line_styles[i],
                                 **lineargs))
+            if do_labels:
+                for label, xval, yval in zip(labels[i], x[i], y[i]):
+                    # ax.annotate(label,
+                                 # xy = (xval, yval), xytext = xytext_tomarker,
+                                 # textcoords = 'offset points', ha = 'center', va = 'center', fontsize = text_fontsize,
+                                 # )
+                    texts.append(ax.text(xval,yval,label,size=text_fontsize))
+                # adjust_text(texts, arrowprops=dict(arrowstyle="-", color='k', lw=0.5))
+                # adjust_text(texts)
+    # adjust_text(texts, force_objects=0,force_text=0.05, add_objects=[item for sublist in mylines for item in sublist])
+    adjust_text(texts, force_objects=0, add_objects=[item for sublist in mylines for item in sublist])
+    # adjust_text(texts, arrowprops=dict(arrowstyle="-", color='k', lw=0.5))
 
-    if do_labels:
-        for i,l in enumerate(labels):
-            for label, xval, yval in zip(labels[i], x[i], y[i]):
-                plt.annotate(label,
-                             xy = (xval, yval), xytext = xytext_tomarker,
-                             textcoords = 'offset points', ha = 'center', va = 'center', fontsize = text_fontsize,
-                             # bbox = dict(boxstyle = 'round,pad=0.2', fc = 'black', alpha = .3),
-                             # arrowprops = dict(arrowstyle = '->', connectionstyle = 'arc3,rad=0')
-                             )
+
+    # if do_labels:
+        # for i,l in enumerate(labels):
+            # for label, xval, yval in zip(labels[i], x[i], y[i]):
+                # print label, xval, yval
+                # plt.annotate(label,
+                             # xy = (xval, yval), xytext = xytext_tomarker,
+                             # textcoords = 'offset points', ha = 'center', va = 'center', fontsize = text_fontsize,
+                             ## bbox = dict(boxstyle = 'round,pad=0.2', fc = 'black', alpha = .3),
+                             ## arrowprops = dict(arrowstyle = '->', connectionstyle = 'arc3,rad=0')
+                             # )
 
     # plot points
     for pnt in points:
@@ -530,30 +561,33 @@ def mk_linechart(title, ra):
     set_titles(ax, title, xtitle, ytitle, title_fontsize,
                         xtitle_fontsize, ytitle_fontsize, ylabel_fontsize)
 
-    # legend
-    leg = ax.legend([a[0] for a in mylines],
-          legend,
-          loc=legend_loc,
-          ncol=legend_ncol,
-          frameon=True,
-          borderaxespad=1.,
-          bbox_to_anchor=bbox,
-          fancybox=True,
-          #prop={'size':10}, # smaller font size
-          )
-    for t in leg.get_texts():
-        t.set_fontsize(legend_fontsize)    # the legend text fontsize
-
     # Graph shrinking if desired, no shrinking by default
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * shrink_width_factor, box.height * shrink_height_factor])
+
+    # legend
+    if do_legend:
+        leg = ax.legend([a[0] for a in mylines],
+              legend,
+              loc=legend_loc,
+              ncol=legend_ncol,
+              frameon=True,
+              borderaxespad=1.,
+              bbox_to_anchor=bbox,
+              fancybox=True,
+              #prop={'size':10}, # smaller font size
+              )
+        for t in leg.get_texts():
+            t.set_fontsize(legend_fontsize)    # the legend text fontsize
+    else:
+        leg = ax.legend([], frameon=False)
 
     ax.set_axisbelow(True)
     if line_split:
         ax2.set_axisbelow(True)
     plt.gca().yaxis.grid(color='0.5', linestyle='--', linewidth=0.3)
     plt.tight_layout()
-    return plt
+    return plt,leg
 
 
 def load_default_config():
@@ -594,21 +628,21 @@ def mk_charts(basedir):
 
             if chart_type == "barchart":
                 # call the plotting function
-                plt = mk_barchart(title=string.capwords(fname) if title == "from-filename" else title,
+                plt = mk_barchart(title=fname if title == "from-filename" else title,
                                     ra=ra)
 
             elif chart_type == "clusterstacked":
                 # call the plotting function
-                plt = mk_clusterstacked(title=string.capwords(fname) if title == "from-filename" else title,
+                plt,leg = mk_clusterstacked(title=fname if title == "from-filename" else title,
                                     ra=ra)
 
             elif chart_type == "stacked":
                 # call the plotting function
-                plt = mk_stacked()
+                plt,leg = mk_stacked()
 
             elif chart_type == "linechart":
                 # call the plotting function
-                plt = mk_linechart(title=string.capwords(fname) if title == "from-filename" else title,
+                plt,leg = mk_linechart(title=fname if title == "from-filename" else title,
                                     ra=ra)
 
             else:
@@ -616,7 +650,7 @@ def mk_charts(basedir):
                 exit(1)
 
             #plt.show()
-            plt.savefig("%s/%s.pdf" % (root, fname))
+            plt.savefig("%s/%s.pdf" % (root, fname),bbox_extra_artists=(leg,), bbox_inches='tight')
 
 
 if __name__ == "__main__":
