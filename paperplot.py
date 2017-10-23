@@ -530,7 +530,8 @@ def mk_linechart(title, ra):
                 # adjust_text(texts, arrowprops=dict(arrowstyle="-", color='k', lw=0.5))
                 # adjust_text(texts)
     # adjust_text(texts, force_objects=0,force_text=0.05, add_objects=[item for sublist in mylines for item in sublist])
-    adjust_text(texts, force_objects=0, add_objects=[item for sublist in mylines for item in sublist])
+    # adjust_text(texts, force_objects=0, add_objects=[item for sublist in mylines for item in sublist]) # DEFAULT
+    adjust_text(texts)
     # adjust_text(texts, arrowprops=dict(arrowstyle="-", color='k', lw=0.5))
 
 
