@@ -195,11 +195,17 @@ def mk_clusterstacked(title, ra):
                             alpha=1, color=colors[idx], ecolor='black', edgecolor='black', hatch=hatch_patterns[idx]))
 
     # put labels for data bars that overflow ylim
-    if ylim and label_enable:
+    if 'ylim' in label_enable:
         for i,elem in enumerate(y_stack[idx]):
             if elem > ylim[1]:
                 ax.text(x=left_empty+(i*barwidth)+((i/num_clustered)*barwidth)+(barwidth/2.),
                         y=ylim[1]+label_y_space, s='%s'%round(elem,2), ha='center', va='bottom',
+                        rotation=label_angle_rotation, fontsize=numbers_fontsize)
+    # put labels for all data bars
+    if 'always' in label_enable:
+        for i,elem in enumerate(y_stack[idx]):
+            ax.text(x=left_empty+(i*barwidth)+((i/num_clustered)*barwidth)+(barwidth/2.),
+                        y=elem+label_y_space, s='%s'%round(elem,2), ha='center', va='bottom',
                         rotation=label_angle_rotation, fontsize=numbers_fontsize)
 
 
@@ -244,6 +250,18 @@ def mk_clusterstacked(title, ra):
                                 mec=linecolors[i],
                                 linestyle=line_styles[i],
                                 **lineargs))
+            if line_label_enable:
+                for j,coord in enumerate(y[i]):
+                    # print coord
+                    # ax.text(x=left_empty+ind[j]+barwidth/2, y=coord, s='%s'%round(coord,2), ha='center', va='bottom',
+                        # rotation=label_angle_rotation, fontsize=numbers_fontsize)
+                    plt.annotate('%s'%round(coord,2),
+                             xy = (left_empty+ind[j]+barwidth/2, coord), xytext = (10, -10),
+                             textcoords = 'offset points', ha = 'center', va = 'center',
+                             # bbox = dict(boxstyle = 'round,pad=0.2', fc = 'black', alpha = .3),
+                             # arrowprops = dict(arrowstyle = '->', connectionstyle = 'arc3,rad=0')
+                             )
+
 
         if do_labels:
             for i,l in enumerate(labels):

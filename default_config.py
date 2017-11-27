@@ -78,7 +78,7 @@ do_add_average = False
 do_add_geomean = False
 
 # labels for bars that overflow ylim
-label_enable=1                  # enable labels
+label_enable='no'                 # enable labels - valid values 'no', 'always', 'ylim'
 label_angle_rotation=0          # rotation angle
 label_y_space=0                 # distance after ylim
 
@@ -183,5 +183,6 @@ lineargs={
 line_styles = ('-', '--', '-.', ':', 'steps', ' ')
 do_labels = True
 do_x_as_xticks = False
+line_label_enable = False
 
 linecolors = [colorConverter.to_rgb(a) for a in (bw_palette_2).split()]
