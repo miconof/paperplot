@@ -131,6 +131,10 @@ hlines = [ # Add one dictionary per line, example:
         # { "y" : 1, "linewidth" : 1, "linestyle" : 'dashed'}
         ]
 
+vlines = [ # Add one dictionary per line, example:
+        # { "x" : 1, "linewidth" : 1, "linestyle" : 'dashed'}
+        ]
+
 # Draw text labels using text(), accepts Text kwargs, see:
 # http://matplotlib.org/api/text_api.html#matplotlib.text.Text
 text_labels = [ # Add one dictionary per text label, example:
@@ -186,3 +190,9 @@ do_x_as_xticks = False
 line_label_enable = False
 
 linecolors = [colorConverter.to_rgb(a) for a in (bw_palette_2).split()]
+
+
+################
+### roofline ###
+################
+num_points = 6

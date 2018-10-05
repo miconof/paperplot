@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib as mp
 import matplotlib.pyplot as plt
 import csv
+from math import log, atan2, degrees
 from matplotlib.colors import colorConverter
 from collections import OrderedDict
 from default_config import *
@@ -25,7 +26,7 @@ def print_usage(caller):
 
         python %(a)s examples/%(c)s
     """ % { 'a' : caller.split('/')[-1] , 'c' : caller.split('/')[-1].split('.')[0] }
-    print USAGE
+    print(USAGE)
 
 
 def row_data_process(r):
@@ -120,6 +121,11 @@ def add_geomean(data, errdata, names):
     names.append('Geomean')
     return data, errdata, names
 
+def frange(start, stop, step=1.0):
+    f = start
+    while f < stop:
+        f += step
+        yield f
 
 def mk_clusterstacked(title, ra):
     # convert ra into header and data objects
@@ -145,10 +151,10 @@ def mk_clusterstacked(title, ra):
 
     # Add arithmetic and/or geometric means
     if do_add_average:
-        print 'Warning AVERAGE not implemented for cluster stacked plots'
+        print('Warning AVERAGE not implemented for cluster stacked plots')
         #columns_data, columns_errdata, xtick_labels = add_average(columns_data, columns_errdata, xtick_labels)
     if do_add_geomean:
-        print 'Warning GEOMEAN not implemented for cluster stacked plots'
+        print('Warning GEOMEAN not implemented for cluster stacked plots')
         #columns_data, columns_errdata, xtick_labels = add_geomean(columns_data, columns_errdata, xtick_labels)
 
     assert(len(legend)==len(data))
@@ -204,6 +210,8 @@ def mk_clusterstacked(title, ra):
     # put labels for all data bars
     if 'always' in label_enable:
         for i,elem in enumerate(y_stack[idx]):
+            if not np.isfinite(elem):
+                elem = 0
             ax.text(x=left_empty+(i*barwidth)+((i/num_clustered)*barwidth)+(barwidth/2.),
                         y=elem+label_y_space, s='%s'%round(elem,2), ha='center', va='bottom',
                         rotation=label_angle_rotation, fontsize=numbers_fontsize)
@@ -389,18 +397,21 @@ def mk_barchart(title, ra):
     plt.gcf().subplots_adjust(bottom=0.2)
 
     # legend
-    leg = ax.legend([a[0] for a in rects],
-          legend,
-          loc=legend_loc,
-          ncol=legend_ncol,
-          frameon=True,
-          borderaxespad=1.,
-          bbox_to_anchor=bbox,
-          fancybox=True,
-          #prop={'size':10}, # smaller font size
-          )
-    for t in leg.get_texts():
-        t.set_fontsize(legend_fontsize)    # the legend text fontsize
+    if do_legend:
+        leg = ax.legend([a[0] for a in rects],
+              legend,
+              loc=legend_loc,
+              ncol=legend_ncol,
+              frameon=True,
+              borderaxespad=1.,
+              bbox_to_anchor=bbox,
+              fancybox=True,
+              #prop={'size':10}, # smaller font size
+              )
+        for t in leg.get_texts():
+            t.set_fontsize(legend_fontsize)    # the legend text fontsize
+    else:
+        leg = ax.legend([], frameon=False)
 
     # Draw horizontal lines
     for line in hlines:
@@ -427,6 +438,128 @@ def get_line_data(data):
     y = [a[3] for a in data]
     return labels, x, y
 
+def angle_between(p1, p2):
+    ang1 = np.arctan2(*p1[::-1])
+    ang2 = np.arctan2(*p2[::-1])
+    return np.rad2deg((ang1 - ang2) % (2 * np.pi))
+
+# expects
+# ceilings[0] = [ mem_ceiling_name, ...]
+# ceilings[1] = [ GB/s (float) , ...]
+# ceilings[2] = [ cpu_ceiling_name, ...]
+# ceilings[3] = [ Gflops/s (float) , ...]
+# ra format:
+# [ "legend elem", "data label", Operational intensity (float) , Gflops/s (float) ]
+# [ "legend elem", "data label", Operational intensity (float) , Gflops/s (float) ]
+def mk_roofline(title, ceilings, ra):
+    alldata, header = parse_recarray(ra)
+
+    mem_ceiling_names = ceilings[0]
+    mem_ceiling_values = ceilings[1]
+    cpu_ceiling_names = ceilings[2]
+    cpu_ceiling_values = ceilings[3]
+    application_data = alldata
+
+    names = [elem[0] for elem in application_data]
+    legend = list(sorted(set(names), key=names.index)) # Keep order
+
+    # create a new figure and axes instance
+    fig = plt.figure(figsize=figure_size) # figure size specified in config
+    ax = fig.add_subplot(111)
+
+    # Set axis scales
+    ax.set_yscale(yscale, basey=2)
+    ax.set_xscale(xscale, basex=2)
+
+    # Set ylim and xlim
+    if ylim:
+        ax.set_ylim(*ylim)
+    if num_yticks:
+        # ax.set_yticks(np.linspace(ax.get_ybound()[0], ax.get_ybound()[1], num_yticks))
+        plt.locator_params(axis='y', nbins=num_yticks)
+    if num_xticks:
+        plt.locator_params(axis='x', nbins=num_xticks)
+
+    max_flops = max(cpu_ceiling_values)
+    max_bw = max(mem_ceiling_values)
+    xticks = [2.**i for i in range(-4, int(log(int(max_flops/max_bw),2))+2)]
+    ax.set_xticks(xticks)
+
+    x = list(frange(min(xticks), max(xticks), 0.01))
+
+    # Upper bw bound
+    for i,elem in enumerate(mem_ceiling_values):
+        ax.plot(x, [min(elem*val, float(max_flops)) for val in x], color=mem_linecolors[i], linewidth=3 if i == 0 else 2)
+        xdiff = x[10] - x[1]
+        ydiff = (x[10]*elem) - (x[1]*elem)
+        angle = degrees(atan2(ydiff, xdiff))
+        plot_location = np.array([x[1], elem*x[1]])
+        trans_angle = plt.gca().transData.transform_angles(np.array((angle,)),
+                                                   plot_location.reshape((1, 2)))[0]
+        ax.text(x[1], elem*x[1], mem_ceiling_names[i], size=text_fontsize, rotation=trans_angle, horizontalalignment = 'left', verticalalignment = 'bottom')
+
+    # Upper cpu bound
+    for i,elem in enumerate(cpu_ceiling_values):
+        ax.plot([max(elem/float(max_bw), val) for val in x], [elem for val in x], color=cpu_linecolors[i], linewidth=3 if i==0 else 2)
+        ax.text(x[-150], elem, cpu_ceiling_names[i], size=text_fontsize, horizontalalignment='right')
+        ax.plot(x[-75], elem, 'o', color='k', markersize=12-i)
+
+    # Application data
+    mylines = []
+    mymarkers = []
+    for i,elem in enumerate(application_data):
+        if i%num_points == 0:
+            mylines.append(ax.plot([elem[2],elem[2]], [0, max_flops], color=linecolors[i/num_points],linestyle=line_styles[i%num_points], linewidth=2))
+        mymarkers.append(ax.plot(elem[2], elem[3], 'o', color=linecolors[i/num_points], markersize=6+(i%num_points)))
+        # mymarkers.append(ax.plot(elem[2], elem[3], color=linecolors[i%num_points], label=elem[1]))
+
+    # plot points
+    for pnt in points:
+        ax.plot(pnt["x"], pnt["y"], color = pnt["color"], marker = pnt["marker"], markersize = pnt["markersize"], mec = pnt["mec"])
+
+    # Draw horizontal lines
+    for line in hlines:
+        ax.axhline(**line)
+
+    # Draw horizontal lines
+    for line in vlines:
+        ax.axvline(**line)
+
+    # Draw text labels
+    for text in text_labels:
+        ax.text(**text)
+
+    # general formating
+    set_titles(ax, title, xtitle, ytitle, title_fontsize,
+                        xtitle_fontsize, ytitle_fontsize, ylabel_fontsize)
+
+    # Graph shrinking if desired, no shrinking by default
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * shrink_width_factor, box.height * shrink_height_factor])
+
+    # legend
+    if do_legend:
+        leg = ax.legend([a[0] for a in mylines],
+              legend,
+              loc=legend_loc,
+              ncol=legend_ncol,
+              frameon=True,
+              borderaxespad=1.,
+              bbox_to_anchor=bbox,
+              fancybox=True,
+              #prop={'size':10}, # smaller font size
+              )
+        for t in leg.get_texts():
+            t.set_fontsize(legend_fontsize)    # the legend text fontsize
+    else:
+        leg = ax.legend([], frameon=False)
+
+    ax.set_axisbelow(True)
+    ax.xaxis.set_major_formatter(plt.ScalarFormatter())
+    ax.yaxis.set_major_formatter(plt.ScalarFormatter())
+    plt.gca().yaxis.grid(color='0.5', linestyle='--', linewidth=0.3)
+    plt.tight_layout()
+    return plt,leg
 
 # expects ["legend element", "data point label", "x", "y"]
 def mk_linechart(title, ra):
@@ -451,7 +584,7 @@ def mk_linechart(title, ra):
 
     # Add arithmetic and/or geometric means
     if do_add_average:
-        print 'Warning AVERAGE not implemented for cluster stacked plots'
+        print('Warning AVERAGE not implemented for cluster stacked plots')
     elif do_add_geomean:
         gmean = []
         for i in range(len(y[0])):
@@ -642,12 +775,12 @@ def mk_charts(basedir):
                  headers = next(csv.reader(f_input))
 
             # Read csv file, returns a recarray
-            print "Updating the figure %s/%s.pdf" % (root, fname)
+            print("Updating the figure %s/%s.pdf" % (root, fname))
             ra = mp.mlab.csv2rec('%s/%s%s' % (root, fname, fext), names=headers, skiprows=1)
 
             if chart_type == "barchart":
                 # call the plotting function
-                plt = mk_barchart(title=fname if title == "from-filename" else title,
+                plt,leg = mk_barchart(title=fname if title == "from-filename" else title,
                                     ra=ra)
 
             elif chart_type == "clusterstacked":
@@ -664,8 +797,13 @@ def mk_charts(basedir):
                 plt,leg = mk_linechart(title=fname if title == "from-filename" else title,
                                     ra=ra)
 
+            elif chart_type == "roofline":
+                # call the plotting function
+                plt,leg = mk_roofline(title=fname if title == "from-filename" else title,
+                                    ceilings=ceilings, ra=ra)
+
             else:
-                print "Wrong chart type"
+                print("Wrong chart type")
                 exit(1)
 
             #plt.show()
@@ -681,6 +819,6 @@ if __name__ == "__main__":
     if os.path.isdir(sys.argv[1]):
         mk_charts(sys.argv[1]) # will go into subfolders
     else:
-        print 'ERROR: Invalid path provided: ' + sys.argv[1]
+        print('ERROR: Invalid path provided: ' + sys.argv[1])
         print_usage(__file__)
         exit(1)
