@@ -502,7 +502,7 @@ def mk_roofline(title, ceilings, ra):
     for i,elem in enumerate(cpu_ceiling_values):
         ax.plot([max(elem/float(max_bw), val) for val in x], [elem for val in x], color=cpu_linecolors[i], linewidth=3 if i==0 else 2)
         ax.text(x[-150], elem+4*(num_points-i), cpu_ceiling_names[i], size=text_fontsize, horizontalalignment='right')
-        ax.plot(x[-75], elem, marker_patterns[num_points-1-i], color='k', markersize=15-i)
+        ax.plot(x[-75], elem, marker_patterns[num_points-1-i], color='k', markersize=marker_sizes[num_points-1-i])
 
     # Application data
     mylines = []
@@ -511,7 +511,7 @@ def mk_roofline(title, ceilings, ra):
         if i%num_points == 0:
             mylines.append(ax.plot([elem[2],elem[2]], [0, max_flops], color=linecolors[i/num_points],linestyle=line_styles[i%num_points], **lineargs))
         mymarkers.append(ax.plot(elem[2], elem[3], marker_patterns[i%num_points], color=linecolors[i/num_points],
-                markersize=10+(i%num_points),markeredgecolor='k',markeredgewidth=1.5))
+                markersize=marker_sizes[i%num_points],markeredgecolor='k',markeredgewidth=1.5))
         # mymarkers.append(ax.plot(elem[2], elem[3], color=linecolors[i%num_points], label=elem[1]))
 
     # plot points
@@ -801,6 +801,15 @@ def mk_charts(basedir):
                                     ra=ra)
 
             elif chart_type == "roofline":
+                # Open the file that contains the ceilings
+                filename_ceilings = '%s/%s.cei' % (root, fname)
+                with open(filename_ceilings, 'rb') as f:
+                    reader = csv.reader(f)
+                    ceilings = list(reader)
+                for row in [1,3]:
+                    for i in range(len(ceilings[row])):
+                        ceilings[row][i] = float(ceilings[row][i])
+
                 # call the plotting function
                 plt,leg = mk_roofline(title=fname if title == "from-filename" else title,
                                     ceilings=ceilings, ra=ra)
