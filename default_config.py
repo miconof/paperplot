@@ -50,6 +50,8 @@ ylim = None
 ylim2 = None
 num_yticks = None
 num_xticks = None
+yticks = None
+xticks = None
 
 # set axis scales
 yscale = 'linear'

@@ -474,17 +474,17 @@ def mk_roofline(title, ceilings, ra):
     # Set ylim and xlim
     if ylim:
         ax.set_ylim(*ylim)
-    if num_yticks:
+    if yticks:
         # ax.set_yticks(np.linspace(ax.get_ybound()[0], ax.get_ybound()[1], num_yticks))
-        plt.locator_params(axis='y', nbins=num_yticks)
-    if num_xticks:
-        plt.locator_params(axis='x', nbins=num_xticks)
-
+        #plt.locator_params(axis='y', nbins=num_yticks)
+        ax.set_yticks(yticks)
     max_flops = max(cpu_ceiling_values)
     max_bw = max(mem_ceiling_values)
-    xticks = [2.**i for i in range(-4, int(log(int(max_flops/max_bw),2))+2)]
-    ax.set_xticks(xticks)
+    global xticks
+    if xticks is None:
+        xticks = [2.**i for i in range(-4, int(log(int(max_flops/max_bw),2))+2)]
 
+    ax.set_xticks(xticks)
     x = list(frange(min(xticks), max(xticks), 0.01))
 
     # Upper bw bound
@@ -501,16 +501,17 @@ def mk_roofline(title, ceilings, ra):
     # Upper cpu bound
     for i,elem in enumerate(cpu_ceiling_values):
         ax.plot([max(elem/float(max_bw), val) for val in x], [elem for val in x], color=cpu_linecolors[i], linewidth=3 if i==0 else 2)
-        ax.text(x[-150], elem, cpu_ceiling_names[i], size=text_fontsize, horizontalalignment='right')
-        ax.plot(x[-75], elem, 'o', color='k', markersize=12-i)
+        ax.text(x[-150], elem+4*(num_points-i), cpu_ceiling_names[i], size=text_fontsize, horizontalalignment='right')
+        ax.plot(x[-75], elem, marker_patterns[num_points-1-i], color='k', markersize=15-i)
 
     # Application data
     mylines = []
     mymarkers = []
     for i,elem in enumerate(application_data):
         if i%num_points == 0:
-            mylines.append(ax.plot([elem[2],elem[2]], [0, max_flops], color=linecolors[i/num_points],linestyle=line_styles[i%num_points], linewidth=2))
-        mymarkers.append(ax.plot(elem[2], elem[3], 'o', color=linecolors[i/num_points], markersize=6+(i%num_points)))
+            mylines.append(ax.plot([elem[2],elem[2]], [0, max_flops], color=linecolors[i/num_points],linestyle=line_styles[i%num_points], **lineargs))
+        mymarkers.append(ax.plot(elem[2], elem[3], marker_patterns[i%num_points], color=linecolors[i/num_points],
+                markersize=10+(i%num_points),markeredgecolor='k',markeredgewidth=1.5))
         # mymarkers.append(ax.plot(elem[2], elem[3], color=linecolors[i%num_points], label=elem[1]))
 
     # plot points
@@ -549,6 +550,8 @@ def mk_roofline(title, ceilings, ra):
               fancybox=True,
               #prop={'size':10}, # smaller font size
               )
+        for line in leg.get_lines():
+            line.set_linewidth(line.get_linewidth()*2)
         for t in leg.get_texts():
             t.set_fontsize(legend_fontsize)    # the legend text fontsize
     else:
