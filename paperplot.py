@@ -508,7 +508,7 @@ def mk_roofline(title, ceilings, ra):
     mylines = []
     mymarkers = []
     for i,elem in enumerate(application_data):
-        if i%num_points == 0:
+        if i%num_points == 1:
             mylines.append(ax.plot([elem[2],elem[2]], [0, max_flops], color=linecolors[i/num_points],linestyle=line_styles[i%num_points], **lineargs))
         mymarkers.append(ax.plot(elem[2], elem[3], marker_patterns[i%num_points], color=linecolors[i/num_points],
                 markersize=marker_sizes[i%num_points],markeredgecolor='k',markeredgewidth=1.5))
