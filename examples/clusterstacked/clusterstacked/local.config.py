@@ -23,5 +23,5 @@ colors = [colorConverter.to_rgb(a) for a in (palette_1 + palette_2).split()]
 
 hatch_patterns = ( ' ', '', '\\\\', 'x', '++', '//', 'O', '..', 'O', '-')
 
-staked = True
+stacked = True
 

@@ -159,12 +159,16 @@ def mk_clusterstacked(title, ra):
 
     assert(len(legend)==len(data))
     ind = np.arange(len(xticks))                # the x locations for the groups
-    barwidth = (1.0/float(num_clustered+1))       # the width of the bars
-    one_barwidth = barwidth/len(data)       # the width of one bar if not staked
+    barwidth = (1.0/float(num_clustered+0.5))     # the width of the bars
+    one_barwidth = (barwidth/len(data))*0.8       # the width of one bar if not staked
 
     # create a new figure and axes instance
     fig = plt.figure(figsize=figure_size) # figure size specified in config
     ax = fig.add_subplot(111)
+
+    # Draw horizontal lines
+    for line in hlines:
+        ax.axhline(line,color="grey",zorder=0)
 
     # Set ylim and xlim
     if ylim:
@@ -184,7 +188,7 @@ def mk_clusterstacked(title, ra):
     # add bars to be printed
     rects = []
     left_empty = barwidth/2.0
-    if staked: # Draw the bars staked
+    if stacked: # Draw the bars staked
         for idx,d in enumerate(data):
             for i in xrange(num_clustered):
                 # this gives every n'th element given a starting position 'i'
@@ -226,7 +230,6 @@ def mk_clusterstacked(title, ra):
             ax.text(x=left_empty+(i*barwidth)+((i/num_clustered)*barwidth)+(barwidth/2.),
                         y=elem+label_y_space, s='%s'%round(elem,2), ha='center', va='bottom',
                         rotation=label_angle_rotation, fontsize=numbers_fontsize)
-
 
     # Check if secondary y axis
     if line_split:
@@ -297,6 +300,8 @@ def mk_clusterstacked(title, ra):
                         xtitle_fontsize, ytitle_fontsize, ylabel_fontsize)
     if num_yticks:
         ax.set_yticks(np.linspace(ax.get_ybound()[0], ax.get_ybound()[1], num_yticks))
+    elif yticks:
+        ax.set_yticks(yticks)
 
     # xticks possition and labels
     ax.set_xticks(ind + left_empty + (num_clustered/2.0)*barwidth)
@@ -307,8 +312,12 @@ def mk_clusterstacked(title, ra):
     if do_sublabels:
         for i in xrange(num_clustered):
             for idx in xrange(len(ind)):
-                ax.text(rects[i][idx].get_x()+rects[i][idx].get_width()/2., labels_y, '%s'%xticks_per_bar[i],
-                    ha='center', va='baseline', fontsize=text_fontsize, rotation=labels_rotation)
+                if stacked:
+                    ax.text(rects[i][idx].get_x()+rects[i][idx].get_width()/2., labels_y, '%s'%xticks_per_bar[i],
+                        ha='center', va='baseline', fontsize=text_fontsize, rotation=labels_rotation)
+                else:
+                    ax.text(rects[i][idx].get_x()+len(data)*(rects[i][idx].get_width()/2.), labels_y, '%s'%xticks_per_bar[i],
+                        ha='center', va='baseline', fontsize=text_fontsize, rotation=labels_rotation)
 
     # legend
     lencolors = [a[0] for a in rects[0::num_clustered]]
