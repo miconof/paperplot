@@ -20,3 +20,8 @@ label_y_space=0.01
 palette_1 = "#777777 #FFFFFF #CCCCCC #FFFFFF "
 palette_2 = "#DDDDDD #FFFFFF #FFFFFF #DDDDDD "
 colors = [colorConverter.to_rgb(a) for a in (palette_1 + palette_2).split()]
+
+hatch_patterns = ( ' ', '', '\\\\', 'x', '++', '//', 'O', '..', 'O', '-')
+
+staked = True
+

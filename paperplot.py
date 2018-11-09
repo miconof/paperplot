@@ -159,7 +159,8 @@ def mk_clusterstacked(title, ra):
 
     assert(len(legend)==len(data))
     ind = np.arange(len(xticks))                # the x locations for the groups
-    barwidth = 1.0/float(num_clustered+1)       # the width of the bars
+    barwidth = (1.0/float(num_clustered+1))       # the width of the bars
+    one_barwidth = barwidth/len(data)       # the width of one bar if not staked
 
     # create a new figure and axes instance
     fig = plt.figure(figsize=figure_size) # figure size specified in config
@@ -183,22 +184,32 @@ def mk_clusterstacked(title, ra):
     # add bars to be printed
     rects = []
     left_empty = barwidth/2.0
-    for idx,d in enumerate(data):
-        for i in xrange(num_clustered):
-            # this gives every n'th element given a starting position 'i'
-            # will give the values for a certain configuration for one breakdown component
-            dd = d[i::num_clustered]
+    if staked: # Draw the bars staked
+        for idx,d in enumerate(data):
+            for i in xrange(num_clustered):
+                # this gives every n'th element given a starting position 'i'
+                # will give the values for a certain configuration for one breakdown component
+                dd = d[i::num_clustered]
 
-            # calculate bottoms
-            if idx == 0:
-                bb = [0] * len(dd)
-            else:
-                b = y_stack[idx-1]
-                bb = b[i::num_clustered]
+                # calculate bottoms
+                if idx == 0:
+                    bb = [0] * len(dd)
+                else:
+                    b = y_stack[idx-1]
+                    bb = b[i::num_clustered]
+                assert(len(ind)==len(dd)==len(bb))
+                rects.append(ax.bar(left=left_empty+ind+(i*barwidth), height=dd, width=barwidth, bottom=bb,
+                                alpha=1, color=colors[idx], ecolor='black', edgecolor='black', hatch=hatch_patterns[idx]))
+    else: # Draw the bars next to the others
+        for idx,d in enumerate(data):
+            for i in xrange(num_clustered):
+                # this gives every n'th element given a starting position 'i'
+                # will give the values for a certain configuration for one breakdown component
+                dd = d[i::num_clustered]
 
-            assert(len(ind)==len(dd)==len(bb))
-            rects.append(ax.bar(left=left_empty+ind+(i*barwidth), height=dd, width=barwidth, bottom=bb,
-                            alpha=1, color=colors[idx], ecolor='black', edgecolor='black', hatch=hatch_patterns[idx]))
+                assert(len(ind)==len(dd))
+                rects.append(ax.bar(left=left_empty+ind+(i*barwidth)+idx*one_barwidth, height=dd, width=one_barwidth,
+                                alpha=1, color=colors[idx], ecolor='black', edgecolor='black', hatch=hatch_patterns[idx]))
 
     # put labels for data bars that overflow ylim
     if 'ylim' in label_enable:
