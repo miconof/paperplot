@@ -151,8 +151,12 @@ def mk_clusterstacked(title, ra):
 
     # Add arithmetic and/or geometric means
     if do_add_average:
-        print('Warning AVERAGE not implemented for cluster stacked plots')
-        #columns_data, columns_errdata, xtick_labels = add_average(columns_data, columns_errdata, xtick_labels)
+        xticks.append("Average")
+        for idx,d in enumerate(data):
+            for i in xrange(num_clustered):
+                dd = d[i::num_clustered]
+                d.append(sum(dd)/len(dd))
+
     if do_add_geomean:
         print('Warning GEOMEAN not implemented for cluster stacked plots')
         #columns_data, columns_errdata, xtick_labels = add_geomean(columns_data, columns_errdata, xtick_labels)
