@@ -636,11 +636,23 @@ def mk_linechart(title, ra):
     # Set ylim and xlim
     if ylim:
         ax.set_ylim(*ylim)
+    try:
+        ax.set_xlim(*xlim)
+    except NameError:
+        pass
     if num_yticks:
         # ax.set_yticks(np.linspace(ax.get_ybound()[0], ax.get_ybound()[1], num_yticks))
         plt.locator_params(axis='y', nbins=num_yticks)
     if num_xticks:
         plt.locator_params(axis='x', nbins=num_xticks)
+
+    global yticks
+    if yticks is not None:
+        ax.set_yticks(yticks)
+
+    global xticks
+    if xticks is not None:
+        ax.set_xticks(xticks)
 
     ax.tick_params(axis='both', which='major', pad=5)
     # Plot x as xticks
