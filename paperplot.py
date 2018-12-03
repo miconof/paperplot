@@ -498,6 +498,10 @@ def mk_roofline(title, ceilings, ra):
     # Set ylim and xlim
     if ylim:
         ax.set_ylim(*ylim)
+    try:
+        ax.set_xlim(*xlim)
+    except NameError:
+        pass
     if yticks:
         # ax.set_yticks(np.linspace(ax.get_ybound()[0], ax.get_ybound()[1], num_yticks))
         #plt.locator_params(axis='y', nbins=num_yticks)
@@ -506,7 +510,7 @@ def mk_roofline(title, ceilings, ra):
     max_bw = max(mem_ceiling_values)
     global xticks
     if xticks is None:
-        xticks = [2.**i for i in range(-4, int(log(int(max_flops/max_bw),2))+2)]
+        xticks = [2.**i for i in range(-4, int(log(max_flops/float(max_bw),2))+2)]
 
     ax.set_xticks(xticks)
     x = list(frange(min(xticks), max(xticks), 0.01))
@@ -523,10 +527,11 @@ def mk_roofline(title, ceilings, ra):
         ax.text(x[1], elem*x[1], mem_ceiling_names[i], size=text_fontsize, rotation=trans_angle, horizontalalignment = 'left', verticalalignment = 'bottom')
 
     # Upper cpu bound
+    cpu_text_pos = -len(x) / 6
     for i,elem in enumerate(cpu_ceiling_values):
         ax.plot([max(elem/float(max_bw), val) for val in x], [elem for val in x], color=cpu_linecolors[i], linewidth=3 if i==0 else 2)
-        ax.text(x[-150], elem+4*(num_points-i), cpu_ceiling_names[i], size=text_fontsize, horizontalalignment='right')
-        ax.plot(x[-75], elem, marker_patterns[num_points-1-i], color='k', markersize=marker_sizes[num_points-1-i])
+        ax.text(x[cpu_text_pos], elem+2, cpu_ceiling_names[i], size=text_fontsize, horizontalalignment='right')
+        ax.plot(x[cpu_text_pos/2], elem, marker_patterns[len(cpu_ceiling_values)-1-i], color='k', markersize=marker_sizes[num_points-1-i])
 
     # Application data
     mylines = []
