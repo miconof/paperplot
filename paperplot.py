@@ -324,21 +324,24 @@ def mk_clusterstacked(title, ra):
                         ha='center', va='baseline', fontsize=text_fontsize, rotation=labels_rotation)
 
     # legend
-    lencolors = [a[0] for a in rects[0::num_clustered]]
-    if line_split:
-        lencolors.extend([a[0] for a in mylines])
-    leg = ax.legend(lencolors, # get the right colors
-          legend, # labels
-          loc=legend_loc,
-          ncol=legend_ncol,
-          frameon=True,
-          borderaxespad=0.5,
-          bbox_to_anchor=bbox,
-          fancybox=True,
-          #prop={'size':10}, # smaller font size
-          )
-    for t in leg.get_texts():
-        t.set_fontsize(legend_fontsize)    # the legend text fontsize
+    if do_legend:
+        lencolors = [a[0] for a in rects[0::num_clustered]]
+        if line_split:
+            lencolors.extend([a[0] for a in mylines])
+        leg = ax.legend(lencolors, # get the right colors
+              legend, # labels
+              loc=legend_loc,
+              ncol=legend_ncol,
+              frameon=True,
+              borderaxespad=0.5,
+              bbox_to_anchor=bbox,
+              fancybox=True,
+              #prop={'size':10}, # smaller font size
+              )
+        for t in leg.get_texts():
+            t.set_fontsize(legend_fontsize)    # the legend text fontsize
+    else:
+        leg = ax.legend([], frameon=False)
 
     # Graph shrinking if desired, no shrinking by default
     box = ax.get_position()
