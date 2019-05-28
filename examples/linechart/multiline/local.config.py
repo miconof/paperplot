@@ -6,7 +6,6 @@ title=''
 xtitle=''
 ytitle='Test'
 
-bbox=(0.305,0.)
 legend_ncol=1
 legend_loc=3
 

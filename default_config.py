@@ -50,6 +50,8 @@ ylim = None
 ylim2 = None
 num_yticks = None
 num_xticks = None
+yticks = None
+xticks = None
 
 # set axis scales
 yscale = 'linear'
@@ -94,6 +96,7 @@ shrink_height_factor=1.
 hatch_patterns = ( ' ', 'oo', '', '\\\\', 'x', '++', '//', 'O', '..', 'O', '-')
 marker_patterns = ( 'o' , 's' , 'd' , '<' , 'h' , '^' , 'p' , 'D' , 'H' ,
  '_' , '>' , 'v' , 'x' , ',', '+' , '*' , ',' , '.' , '1' , '2' , '3' , '4' , )
+marker_sizes = range(8,30)
 
 # color palette
 ### http://www.colourlovers.com/palette/944213/forever_lost?widths=0

@@ -151,19 +151,28 @@ def mk_clusterstacked(title, ra):
 
     # Add arithmetic and/or geometric means
     if do_add_average:
-        print('Warning AVERAGE not implemented for cluster stacked plots')
-        #columns_data, columns_errdata, xtick_labels = add_average(columns_data, columns_errdata, xtick_labels)
+        xticks.append("Average")
+        for idx,d in enumerate(data):
+            for i in xrange(num_clustered):
+                dd = d[i::num_clustered]
+                d.append(sum(dd)/len(dd))
+
     if do_add_geomean:
         print('Warning GEOMEAN not implemented for cluster stacked plots')
         #columns_data, columns_errdata, xtick_labels = add_geomean(columns_data, columns_errdata, xtick_labels)
 
     assert(len(legend)==len(data))
     ind = np.arange(len(xticks))                # the x locations for the groups
-    barwidth = 1.0/float(num_clustered+1)       # the width of the bars
+    barwidth = (1.0/float(num_clustered+0.5))     # the width of the bars
+    one_barwidth = (barwidth/len(data))*0.8       # the width of one bar if not staked
 
     # create a new figure and axes instance
     fig = plt.figure(figsize=figure_size) # figure size specified in config
     ax = fig.add_subplot(111)
+
+    # Draw horizontal lines
+    for line in hlines:
+        ax.axhline(line,color="grey",zorder=0)
 
     # Set ylim and xlim
     if ylim:
@@ -183,22 +192,32 @@ def mk_clusterstacked(title, ra):
     # add bars to be printed
     rects = []
     left_empty = barwidth/2.0
-    for idx,d in enumerate(data):
-        for i in xrange(num_clustered):
-            # this gives every n'th element given a starting position 'i'
-            # will give the values for a certain configuration for one breakdown component
-            dd = d[i::num_clustered]
+    if stacked: # Draw the bars staked
+        for idx,d in enumerate(data):
+            for i in xrange(num_clustered):
+                # this gives every n'th element given a starting position 'i'
+                # will give the values for a certain configuration for one breakdown component
+                dd = d[i::num_clustered]
 
-            # calculate bottoms
-            if idx == 0:
-                bb = [0] * len(dd)
-            else:
-                b = y_stack[idx-1]
-                bb = b[i::num_clustered]
+                # calculate bottoms
+                if idx == 0:
+                    bb = [0] * len(dd)
+                else:
+                    b = y_stack[idx-1]
+                    bb = b[i::num_clustered]
+                assert(len(ind)==len(dd)==len(bb))
+                rects.append(ax.bar(left=left_empty+ind+(i*barwidth), height=dd, width=barwidth, bottom=bb,
+                                alpha=1, color=colors[idx], ecolor='black', edgecolor='black', hatch=hatch_patterns[idx]))
+    else: # Draw the bars next to the others
+        for idx,d in enumerate(data):
+            for i in xrange(num_clustered):
+                # this gives every n'th element given a starting position 'i'
+                # will give the values for a certain configuration for one breakdown component
+                dd = d[i::num_clustered]
 
-            assert(len(ind)==len(dd)==len(bb))
-            rects.append(ax.bar(left=left_empty+ind+(i*barwidth), height=dd, width=barwidth, bottom=bb,
-                            alpha=1, color=colors[idx], ecolor='black', edgecolor='black', hatch=hatch_patterns[idx]))
+                assert(len(ind)==len(dd))
+                rects.append(ax.bar(left=left_empty+ind+(i*barwidth)+idx*one_barwidth, height=dd, width=one_barwidth,
+                                alpha=1, color=colors[idx], ecolor='black', edgecolor='black', hatch=hatch_patterns[idx]))
 
     # put labels for data bars that overflow ylim
     if 'ylim' in label_enable:
@@ -215,7 +234,6 @@ def mk_clusterstacked(title, ra):
             ax.text(x=left_empty+(i*barwidth)+((i/num_clustered)*barwidth)+(barwidth/2.),
                         y=elem+label_y_space, s='%s'%round(elem,2), ha='center', va='bottom',
                         rotation=label_angle_rotation, fontsize=numbers_fontsize)
-
 
     # Check if secondary y axis
     if line_split:
@@ -286,6 +304,8 @@ def mk_clusterstacked(title, ra):
                         xtitle_fontsize, ytitle_fontsize, ylabel_fontsize)
     if num_yticks:
         ax.set_yticks(np.linspace(ax.get_ybound()[0], ax.get_ybound()[1], num_yticks))
+    elif yticks:
+        ax.set_yticks(yticks)
 
     # xticks possition and labels
     ax.set_xticks(ind + left_empty + (num_clustered/2.0)*barwidth)
@@ -296,25 +316,32 @@ def mk_clusterstacked(title, ra):
     if do_sublabels:
         for i in xrange(num_clustered):
             for idx in xrange(len(ind)):
-                ax.text(rects[i][idx].get_x()+rects[i][idx].get_width()/2., labels_y, '%s'%xticks_per_bar[i],
-                    ha='center', va='baseline', fontsize=text_fontsize, rotation=labels_rotation)
+                if stacked:
+                    ax.text(rects[i][idx].get_x()+rects[i][idx].get_width()/2., labels_y, '%s'%xticks_per_bar[i],
+                        ha='center', va='baseline', fontsize=text_fontsize, rotation=labels_rotation)
+                else:
+                    ax.text(rects[i][idx].get_x()+len(data)*(rects[i][idx].get_width()/2.), labels_y, '%s'%xticks_per_bar[i],
+                        ha='center', va='baseline', fontsize=text_fontsize, rotation=labels_rotation)
 
     # legend
-    lencolors = [a[0] for a in rects[0::num_clustered]]
-    if line_split:
-        lencolors.extend([a[0] for a in mylines])
-    leg = ax.legend(lencolors, # get the right colors
-          legend, # labels
-          loc=legend_loc,
-          ncol=legend_ncol,
-          frameon=True,
-          borderaxespad=0.5,
-          bbox_to_anchor=bbox,
-          fancybox=True,
-          #prop={'size':10}, # smaller font size
-          )
-    for t in leg.get_texts():
-        t.set_fontsize(legend_fontsize)    # the legend text fontsize
+    if do_legend:
+        lencolors = [a[0] for a in rects[0::num_clustered]]
+        if line_split:
+            lencolors.extend([a[0] for a in mylines])
+        leg = ax.legend(lencolors, # get the right colors
+              legend, # labels
+              loc=legend_loc,
+              ncol=legend_ncol,
+              frameon=True,
+              borderaxespad=0.5,
+              bbox_to_anchor=bbox,
+              fancybox=True,
+              #prop={'size':10}, # smaller font size
+              )
+        for t in leg.get_texts():
+            t.set_fontsize(legend_fontsize)    # the legend text fontsize
+    else:
+        leg = ax.legend([], frameon=False)
 
     # Graph shrinking if desired, no shrinking by default
     box = ax.get_position()
@@ -474,17 +501,21 @@ def mk_roofline(title, ceilings, ra):
     # Set ylim and xlim
     if ylim:
         ax.set_ylim(*ylim)
-    if num_yticks:
+    try:
+        ax.set_xlim(*xlim)
+    except NameError:
+        pass
+    if yticks:
         # ax.set_yticks(np.linspace(ax.get_ybound()[0], ax.get_ybound()[1], num_yticks))
-        plt.locator_params(axis='y', nbins=num_yticks)
-    if num_xticks:
-        plt.locator_params(axis='x', nbins=num_xticks)
-
+        #plt.locator_params(axis='y', nbins=num_yticks)
+        ax.set_yticks(yticks)
     max_flops = max(cpu_ceiling_values)
     max_bw = max(mem_ceiling_values)
-    xticks = [2.**i for i in range(-4, int(log(int(max_flops/max_bw),2))+2)]
-    ax.set_xticks(xticks)
+    global xticks
+    if xticks is None:
+        xticks = [2.**i for i in range(-4, int(log(max_flops/float(max_bw),2))+2)]
 
+    ax.set_xticks(xticks)
     x = list(frange(min(xticks), max(xticks), 0.01))
 
     # Upper bw bound
@@ -499,18 +530,20 @@ def mk_roofline(title, ceilings, ra):
         ax.text(x[1], elem*x[1], mem_ceiling_names[i], size=text_fontsize, rotation=trans_angle, horizontalalignment = 'left', verticalalignment = 'bottom')
 
     # Upper cpu bound
+    cpu_text_pos = -len(x) / 6
     for i,elem in enumerate(cpu_ceiling_values):
         ax.plot([max(elem/float(max_bw), val) for val in x], [elem for val in x], color=cpu_linecolors[i], linewidth=3 if i==0 else 2)
-        ax.text(x[-150], elem, cpu_ceiling_names[i], size=text_fontsize, horizontalalignment='right')
-        ax.plot(x[-75], elem, 'o', color='k', markersize=12-i)
+        ax.text(x[cpu_text_pos], elem+2, cpu_ceiling_names[i], size=text_fontsize, horizontalalignment='right')
+        ax.plot(x[cpu_text_pos/2], elem, marker_patterns[len(cpu_ceiling_values)-1-i], color='k', markersize=marker_sizes[num_points-1-i])
 
     # Application data
     mylines = []
     mymarkers = []
     for i,elem in enumerate(application_data):
-        if i%num_points == 0:
-            mylines.append(ax.plot([elem[2],elem[2]], [0, max_flops], color=linecolors[i/num_points],linestyle=line_styles[i%num_points], linewidth=2))
-        mymarkers.append(ax.plot(elem[2], elem[3], 'o', color=linecolors[i/num_points], markersize=6+(i%num_points)))
+        if i%num_points == 1:
+            mylines.append(ax.plot([elem[2],elem[2]], [0, max_flops], color=linecolors[i/num_points],linestyle=line_styles[i%num_points], **lineargs))
+        mymarkers.append(ax.plot(elem[2], elem[3], marker_patterns[i%num_points], color=linecolors[i/num_points],
+                markersize=marker_sizes[i%num_points],markeredgecolor='k',markeredgewidth=1.5))
         # mymarkers.append(ax.plot(elem[2], elem[3], color=linecolors[i%num_points], label=elem[1]))
 
     # plot points
@@ -549,6 +582,8 @@ def mk_roofline(title, ceilings, ra):
               fancybox=True,
               #prop={'size':10}, # smaller font size
               )
+        for line in leg.get_lines():
+            line.set_linewidth(line.get_linewidth()*2)
         for t in leg.get_texts():
             t.set_fontsize(legend_fontsize)    # the legend text fontsize
     else:
@@ -609,11 +644,23 @@ def mk_linechart(title, ra):
     # Set ylim and xlim
     if ylim:
         ax.set_ylim(*ylim)
+    try:
+        ax.set_xlim(*xlim)
+    except NameError:
+        pass
     if num_yticks:
         # ax.set_yticks(np.linspace(ax.get_ybound()[0], ax.get_ybound()[1], num_yticks))
         plt.locator_params(axis='y', nbins=num_yticks)
     if num_xticks:
         plt.locator_params(axis='x', nbins=num_xticks)
+
+    global yticks
+    if yticks is not None:
+        ax.set_yticks(yticks)
+
+    global xticks
+    if xticks is not None:
+        ax.set_xticks(xticks)
 
     ax.tick_params(axis='both', which='major', pad=5)
     # Plot x as xticks
@@ -798,6 +845,15 @@ def mk_charts(basedir):
                                     ra=ra)
 
             elif chart_type == "roofline":
+                # Open the file that contains the ceilings
+                filename_ceilings = '%s/%s.cei' % (root, fname)
+                with open(filename_ceilings, 'rb') as f:
+                    reader = csv.reader(f)
+                    ceilings = list(reader)
+                for row in [1,3]:
+                    for i in range(len(ceilings[row])):
+                        ceilings[row][i] = float(ceilings[row][i])
+
                 # call the plotting function
                 plt,leg = mk_roofline(title=fname if title == "from-filename" else title,
                                     ceilings=ceilings, ra=ra)
